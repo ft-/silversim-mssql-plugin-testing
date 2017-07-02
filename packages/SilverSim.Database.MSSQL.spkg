@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<package>
+	<name>SilverSim.Database.MSSQL</name>
+	<default-configuration>
+		<source>SilverSim.Database.MSSQL:PackageConfig.ini</source>
+	</default-configuration>
+	<files>
+		<file name="bin/plugins/SilverSim.Database.MSSQL.dll"/>
+	</files>
+</package>
