@@ -376,7 +376,7 @@ namespace SilverSim.Database.MSSQL.Asset.Deduplication
                         using (var cmd =
                             new SqlCommand(
                                 "INSERT INTO assetdata (hash, assetType, data)" +
-                                " SELECT @hash, @assetType, @data FROM assetdata WHERE NOT EXISTS (" +
+                                " SELECT @hash, @assetType, @data WHERE NOT EXISTS (" +
                                 "SELECT NULL FROM assetdata WHERE hash=@hash AND assetType=@assetType)",
                                 conn))
                         {
