@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<package>
+	<name>SilverSim.Tests.Preconditions.MsSql</name>
+	<files>
+		<file name="bin/plugins/SilverSim.Tests.Preconditions.MsSql.dll"/>
+	</files>
+</package>
