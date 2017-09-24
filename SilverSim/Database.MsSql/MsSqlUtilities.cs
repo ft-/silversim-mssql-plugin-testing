@@ -424,7 +424,7 @@ namespace SilverSim.Database.MsSql
             q1.Append(insertIntoFields);
             q1.Append(") SELECT ");
             q1.Append(insertIntoParams);
-            q1.Append(" WHERE NOT EXISTS (SELECT 1 FROM ");
+            q1.Append(" WHERE NOT EXISTS (SELECT NULL FROM ");
             q1.Append(quotedTableName);
             q1.Append(" WHERE ");
             q1.Append(whereParams);
