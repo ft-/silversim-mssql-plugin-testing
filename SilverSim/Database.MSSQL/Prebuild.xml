@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<Project frameworkVersion="v4_5" name="SilverSim.Database.MSSQL" path="SilverSim/Database.MSSQL" type="Library">
+<Project frameworkVersion="v4_5" name="SilverSim.Database.MsSql" path="SilverSim/Database.MsSql" type="Library">
   <Configuration name="Release">
     <Options>
       <OutputPath>../../bin/plugins</OutputPath>
@@ -28,7 +28,6 @@
   <Reference name="SilverSim.Viewer.Messages" localCopy="false"/>
   <Reference name="SilverSim.Main.Common" localCopy="false"/>
   <Reference name="SilverSim.Threading" localCopy="false"/>
-  <Reference name="MySql.Data" path="../../bin" localCopy="false"/>
   <Reference name="Nini" localCopy="false"/>
   <Files>
     <Match pattern="*.cs" recurse="true">

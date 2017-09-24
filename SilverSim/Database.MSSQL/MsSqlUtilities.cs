@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -42,30 +41,32 @@ namespace SilverSim.Database.MSSQL
         #region Connection String Creator
         public static string BuildConnectionString(IConfig config, ILog log)
         {
-            SqlConnectionStringBuilder sb = new SqlConnectionStringBuilder();
+            var sb = new SqlConnectionStringBuilder();
 
-            if (!(config.Contains("Username") && config.Contains("Password") && config.Contains("Database")))
+            if (!(config.Contains("Server") && config.Contains("Database")))
             {
                 string configName = config.Name;
-                if (!config.Contains("Username"))
+                if (!config.Contains("Server"))
                 {
-                    log.FatalFormat("[MSSQL CONFIG]: Parameter 'Username' missing in [{0}]", configName);
-                }
-                if (!config.Contains("Password"))
-                {
-                    log.FatalFormat("[MSSQL CONFIG]: Parameter 'Password' missing in [{0}]", configName);
+                    log.FatalFormat("[MSSQL CONFIG]: Parameter 'Server' missing in [{0}]", configName);
                 }
                 if (!config.Contains("Database"))
                 {
                     log.FatalFormat("[MSSQL CONFIG]: Parameter 'Database' missing in [{0}]", configName);
                 }
-                throw new ConfigurationLoader.ConfigurationErrorException();
+                throw new ConfigurationLoader.ConfigurationErrorException("Incomplete database reference");
             }
 
             sb.DataSource = config.GetString("Server", "localhost");
 
-            sb.UserID = config.GetString("Username");
-            sb.Password = config.GetString("Password");
+            if (config.Contains("Username"))
+            {
+                sb.UserID = config.GetString("Username");
+            }
+            if (config.Contains("Password"))
+            {
+                sb.Password = config.GetString("Password");
+            }
             sb.InitialCatalog = config.GetString("Database");
 
             if (config.Contains("MaximumPoolsize"))
@@ -79,94 +80,90 @@ namespace SilverSim.Database.MSSQL
 
         #region Exceptions
         [Serializable]
-        public class MsSQLInsertException : Exception
+        public class MsSqlInsertException : Exception
         {
-            public MsSQLInsertException()
+            public MsSqlInsertException()
             {
             }
 
-            public MsSQLInsertException(string msg)
+            public MsSqlInsertException(string msg)
                 : base(msg)
             {
             }
 
-            protected MsSQLInsertException(SerializationInfo info, StreamingContext context)
+            protected MsSqlInsertException(SerializationInfo info, StreamingContext context)
                 : base(info, context)
             {
             }
 
-            public MsSQLInsertException(string msg, Exception innerException)
+            public MsSqlInsertException(string msg, Exception innerException)
                 : base(msg, innerException)
             {
             }
         }
 
         [Serializable]
-        public class MsSQLMigrationException : Exception
+        public class MsSqlMigrationException : Exception
         {
-            public MsSQLMigrationException()
+            public MsSqlMigrationException()
             {
             }
 
-            public MsSQLMigrationException(string msg)
+            public MsSqlMigrationException(string msg)
                 : base(msg)
             {
             }
 
-            protected MsSQLMigrationException(SerializationInfo info, StreamingContext context)
+            protected MsSqlMigrationException(SerializationInfo info, StreamingContext context)
                 : base(info, context)
             {
             }
 
-            public MsSQLMigrationException(string msg, Exception innerException)
+            public MsSqlMigrationException(string msg, Exception innerException)
                 : base(msg, innerException)
-            {
-            }
-        }
-
-        [Serializable]
-        public class MsSQLTransactionException : Exception
-        {
-            public MsSQLTransactionException()
-            {
-            }
-
-            public MsSQLTransactionException(string msg)
-                : base(msg)
-            {
-            }
-
-            protected MsSQLTransactionException(SerializationInfo info, StreamingContext context)
-                : base(info, context)
-            {
-            }
-
-            public MsSQLTransactionException(string msg, Exception inner)
-                : base(msg, inner)
             {
             }
         }
         #endregion
 
         #region Transaction Helper
-        public static void InsideTransaction(this SqlConnection connection, Action del)
+        public static void InsideTransaction(this SqlConnection connection, Action<SqlTransaction> del)
         {
             InsideTransaction(connection, IsolationLevel.Serializable, del);
         }
 
-        public static void InsideTransaction(this SqlConnection connection, IsolationLevel level, Action del)
+        public static void InsideTransaction(this SqlConnection connection, IsolationLevel level, Action<SqlTransaction> del)
         {
             SqlTransaction transaction = connection.BeginTransaction(level);
             try
             {
-                del();
+                del(transaction);
             }
-            catch (Exception e)
+            catch
             {
                 transaction.Rollback();
-                throw new MsSQLTransactionException("Transaction failed", e);
+                throw;
             }
             transaction.Commit();
+        }
+        public static T InsideTransaction<T>(this SqlConnection connection, Func<SqlTransaction, T> del) =>
+            InsideTransaction(connection, IsolationLevel.Serializable, del);
+
+        public static T InsideTransaction<T>(this SqlConnection connection, IsolationLevel level, Func<SqlTransaction, T> del)
+        {
+            T ret;
+            SqlTransaction transaction = connection.BeginTransaction(level);
+            try
+            {
+                ret = del(transaction);
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+            transaction.Commit();
+            return ret;
         }
         #endregion
 
@@ -493,20 +490,21 @@ namespace SilverSim.Database.MSSQL
                     AddParameters(command.Parameters, vals);
                     if (command.ExecuteNonQuery() < 1)
                     {
-                        throw new MsSQLInsertException();
+                        throw new MsSqlInsertException();
                     }
                 }
             }
             else
             {
-                connection.InsideTransaction(() =>
+                connection.InsideTransaction((transaction) =>
                 {
                     using (var command = new SqlCommand(q1.ToString(), connection))
                     {
+                        command.Transaction = transaction;
                         AddParameters(command.Parameters, vals);
                         if (command.ExecuteNonQuery() < 1)
                         {
-                            throw new MsSQLInsertException();
+                            throw new MsSqlInsertException();
                         }
                     }
                 });
@@ -600,7 +598,7 @@ namespace SilverSim.Database.MSSQL
                 AddParameters(command.Parameters, vals);
                 if (command.ExecuteNonQuery() < 1)
                 {
-                    throw new MsSQLInsertException();
+                    throw new MsSqlInsertException();
                 }
             }
         }
@@ -679,7 +677,7 @@ namespace SilverSim.Database.MSSQL
                 AddParameters(command.Parameters, vals);
                 if (command.ExecuteNonQuery() < 1)
                 {
-                    throw new MsSQLInsertException();
+                    throw new MsSqlInsertException();
                 }
             }
         }
@@ -710,7 +708,7 @@ namespace SilverSim.Database.MSSQL
                 }
                 if (command.ExecuteNonQuery() < 1)
                 {
-                    throw new MsSQLInsertException();
+                    throw new MsSqlInsertException();
                 }
             }
         }
@@ -873,10 +871,7 @@ namespace SilverSim.Database.MSSQL
         #region Migrations helper
         public static uint GetTableRevision(this SqlConnection connection, string name)
         {
-            using (var cmd = new SqlCommand("SELECT description FROM pg_description " +
-                        "JOIN pg_class ON pg_description.objoid = pg_class.oid " +
-                        "JOIN pg_namespace ON pg_class.relnamespace = pg_namespace.oid " +
-                        "WHERE relname = @name", connection))
+            using (var cmd = new SqlCommand("SELECT value FROM fn_listextendedproperty(NULL, 'schema', 'dbo', 'table', @name, default, default) WHERE name = N'table_revision'", connection))
             {
                 cmd.Parameters.AddWithValue("@name", name);
                 using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -884,7 +879,7 @@ namespace SilverSim.Database.MSSQL
                     if (dbReader.Read())
                     {
                         uint u;
-                        if (!uint.TryParse((string)dbReader["description"], out u))
+                        if (!uint.TryParse((string)dbReader["value"], out u))
                         {
                             throw new InvalidDataException("description is not a parseable number");
                         }
@@ -898,7 +893,7 @@ namespace SilverSim.Database.MSSQL
 
         public static string ToMsSqlQuoted(this string unquoted)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.Append("'");
             foreach(char c in unquoted)
             {
@@ -911,6 +906,7 @@ namespace SilverSim.Database.MSSQL
                     sb.Append(c);
                 }
             }
+            sb.Append("'");
             return sb.ToString();
         }
     }

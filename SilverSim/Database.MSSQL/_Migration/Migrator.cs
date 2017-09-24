@@ -27,7 +27,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MsSQLMigrationException = SilverSim.Database.MSSQL.MsSqlUtilities.MsSQLMigrationException;
+using MsSqlMigrationException = SilverSim.Database.MSSQL.MsSqlUtilities.MsSqlMigrationException;
 
 namespace SilverSim.Database.MSSQL._Migration
 {
@@ -57,7 +57,7 @@ namespace SilverSim.Database.MSSQL._Migration
             uint tableRevision,
             ILog log)
         {
-            SqlCommandBuilder b = new SqlCommandBuilder();
+            var b = new SqlCommandBuilder();
             log.InfoFormat("Creating table '{0}' at revision {1}", table.Name, tableRevision);
             var fieldSqls = new List<string>();
             foreach (IColumnInfo field in fields.Values)
@@ -72,14 +72,18 @@ namespace SilverSim.Database.MSSQL._Migration
             string escapedTableName = b.QuoteIdentifier(table.Name);
             string cmd = "CREATE TABLE " + escapedTableName + " (";
             cmd += string.Join(",", fieldSqls);
-            cmd += ")";
-            cmd += "; COMMENT ON TABLE " + escapedTableName + " IS '" + tableRevision.ToString() + "';";
+            cmd += ");";
+            cmd += string.Format("EXEC sys.sp_addextendedproperty @name=N'table_revision', " +
+            "@value = N'{1}', @level0type = N'SCHEMA', @level0name = N'dbo'," +
+            "@level1type = N'TABLE', @level1name = N'{0}';", table.Name, tableRevision);
             ExecuteStatement(conn, cmd, log);
         }
 
         private static void CommentTable(this SqlConnection conn, string tablename, uint revision, ILog log)
         {
-            ExecuteStatement(conn, string.Format("COMMENT ON TABLE {0} IS '{1}';", tablename, revision), log);
+            ExecuteStatement(conn, string.Format("EXEC sys.sp_addextendedproperty @name=N'table_revision', " +
+            "@value = N'{1}', @level0type = N'SCHEMA', @level0name = N'dbo'," +
+            "@level1type = N'TABLE', @level1name = N'{0}';", tablename, revision), log);
         }
 
         public static void MigrateTables(this SqlConnection conn, IMigrationElement[] processTable, ILog log)
@@ -94,12 +98,12 @@ namespace SilverSim.Database.MSSQL._Migration
 
             if (processTable.Length == 0)
             {
-                throw new MsSQLMigrationException("Invalid PostgreSQL migration");
+                throw new MsSqlMigrationException("Invalid MsSql migration");
             }
 
             if (null == processTable[0] as SqlTable)
             {
-                throw new MsSQLMigrationException("First entry must be table name");
+                throw new MsSqlMigrationException("First entry must be table name");
             }
 
             foreach (IMigrationElement migration in processTable)
@@ -149,7 +153,7 @@ namespace SilverSim.Database.MSSQL._Migration
                     var rev = (TableRevision)migration;
                     if (rev.Revision != processingTableRevision + 1)
                     {
-                        throw new MsSQLMigrationException(string.Format("Invalid TableRevision entry. Expected {0}. Got {1}", processingTableRevision + 1, rev.Revision));
+                        throw new MsSqlMigrationException(string.Format("Invalid TableRevision entry. Expected {0}. Got {1}", processingTableRevision + 1, rev.Revision));
                     }
 
                     processingTableRevision = rev.Revision;
@@ -164,11 +168,11 @@ namespace SilverSim.Database.MSSQL._Migration
                 {
                     if (table != null)
                     {
-                        throw new MsSQLMigrationException("Unexpected processing element for " + table.Name);
+                        throw new MsSqlMigrationException("Unexpected processing element for " + table.Name);
                     }
                     else
                     {
-                        throw new MsSQLMigrationException("Unexpected processing element");
+                        throw new MsSqlMigrationException("Unexpected processing element");
                     }
                 }
                 else
@@ -249,7 +253,7 @@ namespace SilverSim.Database.MSSQL._Migration
                     }
                     else
                     {
-                        throw new MsSQLMigrationException("Invalid type " + migrationType.FullName + " in migration list");
+                        throw new MsSqlMigrationException("Invalid type " + migrationType.FullName + " in migration list");
                     }
                 }
             }

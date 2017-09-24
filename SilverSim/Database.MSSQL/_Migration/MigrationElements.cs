@@ -117,7 +117,7 @@ namespace SilverSim.Database.MSSQL._Migration
         string Sql(string tableName);
     }
 
-    static class ColumnGenerator
+    internal static class ColumnGenerator
     {
         public static Dictionary<string, string> ColumnSql(this IColumnInfo colInfo)
         {
@@ -128,12 +128,12 @@ namespace SilverSim.Database.MSSQL._Migration
             if (f == typeof(string))
             {
                 typeSql = (colInfo.Cardinality == 0) ?
-                    "text" :
-                    (colInfo.IsFixed ? "CHAR" : "VARCHAR") + "(" + colInfo.Cardinality.ToString() + ")";
+                    (colInfo.IsLong ? "nvarchar(max)" : "nvarchar(8000)") :
+                    (colInfo.IsFixed ? "NCHAR" : "NVARCHAR") + "(" + colInfo.Cardinality.ToString() + ")";
             }
             else if (f == typeof(UUI) || f == typeof(UGI))
             {
-                typeSql = "VARCHAR(255)";
+                typeSql = "NVARCHAR(255)";
             }
             else if (f == typeof(UUID) || f == typeof(ParcelID))
             {
@@ -173,7 +173,7 @@ namespace SilverSim.Database.MSSQL._Migration
             }
             else if (f == typeof(bool))
             {
-                typeSql = "bool";
+                typeSql = "bit";
             }
             else if (f == typeof(long) || f == typeof(ulong) || f == typeof(Date))
             {
@@ -363,7 +363,7 @@ namespace SilverSim.Database.MSSQL._Migration
             {
                 if (colInfo.IsLong)
                 {
-                    typeSql = "image";
+                    typeSql = "varbinary(max)";
                 }
                 else if(colInfo.Cardinality == 0)
                 {
@@ -653,7 +653,9 @@ namespace SilverSim.Database.MSSQL._Migration
             Revision = revision;
         }
 
-        public string Sql(string tableName) => string.Format("COMMENT ON TABLE {0} COMMENT='{1}'", new SqlCommandBuilder().QuoteIdentifier(tableName), Revision);
+        public string Sql(string tableName) => string.Format("EXEC sys.sp_addextendedproperty @name=N'table_revision', " +
+            "@value = N'{1}', @level0type = N'SCHEMA', @level0name = N'dbo'," +
+            "@level1type = N'TABLE', @level1name = N'{0}'", tableName, Revision);
     }
 
     public class SqlStatement : IMigrationElement
