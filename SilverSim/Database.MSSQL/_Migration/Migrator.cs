@@ -25,11 +25,9 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MsSqlMigrationException = SilverSim.Database.MSSQL.MsSqlUtilities.MsSqlMigrationException;
+using MsSqlMigrationException = SilverSim.Database.MsSql.MsSqlUtilities.MsSqlMigrationException;
 
-namespace SilverSim.Database.MSSQL._Migration
+namespace SilverSim.Database.MsSql._Migration
 {
     public static class Migrator
     {

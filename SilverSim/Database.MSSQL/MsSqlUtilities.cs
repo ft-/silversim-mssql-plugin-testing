@@ -34,7 +34,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace SilverSim.Database.MSSQL
+namespace SilverSim.Database.MsSql
 {
     public static class MsSqlUtilities
     {
@@ -308,9 +308,8 @@ namespace SilverSim.Database.MSSQL
         #endregion
 
         #region REPLACE INTO style helper
-        public static void ReplaceInto(this SqlConnection connection, string tablename, Dictionary<string, object> vals, string[] keyfields, bool enableOnConflict)
+        public static void ReplaceInto(this SqlConnection connection, string tablename, Dictionary<string, object> vals, string[] keyfields, SqlTransaction transaction = null)
         {
-            bool useOnConflict = enableOnConflict;
             var q = new List<string>();
             foreach (KeyValuePair<string, object> kvp in vals)
             {
@@ -371,122 +370,71 @@ namespace SilverSim.Database.MSSQL
 
             var q1 = new StringBuilder();
             string quotedTableName = cb.QuoteIdentifier(tablename);
-            if (useOnConflict)
+            var insertIntoParams = new StringBuilder();
+            var insertIntoFields = new StringBuilder();
+            var updateParams = new StringBuilder();
+            var whereParams = new StringBuilder();
+
+            foreach (string p in q)
             {
-                var insertIntoFields = new StringBuilder();
-                var conflictParams = new StringBuilder();
-                var updateParams = new StringBuilder();
-
-                q1.Append("INSERT INTO ");
-                q1.Append(quotedTableName);
-                q1.Append(" (");
-                insertIntoFields.Append(") VALUES (");
-
-                bool first = true;
-                foreach (string p in q)
+                string quotedFieldName = cb.QuoteIdentifier(p);
+                if (insertIntoParams.Length != 0)
                 {
-                    if (!first)
-                    {
-                        q1.Append(",");
-                        insertIntoFields.Append(",");
-                    }
-                    first = false;
-                    q1.Append(cb.QuoteIdentifier(p));
-                    insertIntoFields.Append("@v_");
-                    insertIntoFields.Append(p);
-                    if (keyfields.Contains(p))
-                    {
-                        if (conflictParams.Length != 0)
-                        {
-                            conflictParams.Append(",");
-                        }
-                        conflictParams.Append(cb.QuoteIdentifier(p));
-                    }
-                    else
-                    {
-                        if (updateParams.Length != 0)
-                        {
-                            updateParams.Append(",");
-                        }
-                        updateParams.Append(cb.QuoteIdentifier(p));
-                        updateParams.Append("=");
-                        updateParams.Append("@v_");
-                        updateParams.Append(p);
-                    }
+                    insertIntoParams.Append(",");
+                    insertIntoFields.Append(",");
                 }
-                q1.Append(insertIntoFields);
-                q1.Append(") ON CONFLICT (");
-                q1.Append(conflictParams);
-                q1.Append(") DO UPDATE SET ");
-                q1.Append(updateParams);
-            }
-            else
-            {
-                var insertIntoParams = new StringBuilder();
-                var insertIntoFields = new StringBuilder();
-                var updateParams = new StringBuilder();
-                var whereParams = new StringBuilder();
+                insertIntoParams.Append("@v_");
+                insertIntoParams.Append(p);
+                insertIntoFields.Append(quotedFieldName);
 
-                foreach (string p in q)
+
+                if (keyfields.Contains(p))
                 {
-                    string quotedFieldName = cb.QuoteIdentifier(p);
-                    if (insertIntoParams.Length != 0)
+                    if (whereParams.Length != 0)
                     {
-                        insertIntoParams.Append(",");
-                        insertIntoFields.Append(",");
+                        whereParams.Append(" AND ");
                     }
-                    insertIntoParams.Append("@v_");
-                    insertIntoParams.Append(p);
-                    insertIntoFields.Append(quotedFieldName);
-
-
-                    if (keyfields.Contains(p))
-                    {
-                        if (whereParams.Length != 0)
-                        {
-                            whereParams.Append(" AND ");
-                        }
-                        whereParams.Append(quotedFieldName);
-                        whereParams.Append(" = ");
-                        whereParams.Append("@v_");
-                        whereParams.Append(p);
-                    }
-                    else
-                    {
-                        if (updateParams.Length != 0)
-                        {
-                            updateParams.Append(",");
-                        }
-                        updateParams.Append(quotedFieldName);
-                        updateParams.Append("=");
-                        updateParams.Append("@v_");
-                        updateParams.Append(p);
-                    }
+                    whereParams.Append(quotedFieldName);
+                    whereParams.Append(" = ");
+                    whereParams.Append("@v_");
+                    whereParams.Append(p);
                 }
-                q1.Append("UPDATE ");
-                q1.Append(quotedTableName);
-                q1.Append(" SET ");
-                q1.Append(updateParams);
-                q1.Append(" WHERE ");
-                q1.Append(whereParams);
-
-                q1.Append("; INSERT INTO ");
-                q1.Append(quotedTableName);
-                q1.Append(" (");
-                q1.Append(insertIntoFields);
-                q1.Append(") SELECT ");
-                q1.Append(insertIntoParams);
-                q1.Append(" WHERE NOT EXISTS (SELECT 1 FROM ");
-                q1.Append(quotedTableName);
-                q1.Append(" WHERE ");
-                q1.Append(whereParams);
-                q1.Append(")");
+                else
+                {
+                    if (updateParams.Length != 0)
+                    {
+                        updateParams.Append(",");
+                    }
+                    updateParams.Append(quotedFieldName);
+                    updateParams.Append("=");
+                    updateParams.Append("@v_");
+                    updateParams.Append(p);
+                }
             }
+            q1.Append("UPDATE ");
+            q1.Append(quotedTableName);
+            q1.Append(" SET ");
+            q1.Append(updateParams);
+            q1.Append(" WHERE ");
+            q1.Append(whereParams);
 
-            if (useOnConflict)
+            q1.Append("; INSERT INTO ");
+            q1.Append(quotedTableName);
+            q1.Append(" (");
+            q1.Append(insertIntoFields);
+            q1.Append(") SELECT ");
+            q1.Append(insertIntoParams);
+            q1.Append(" WHERE NOT EXISTS (SELECT 1 FROM ");
+            q1.Append(quotedTableName);
+            q1.Append(" WHERE ");
+            q1.Append(whereParams);
+            q1.Append(")");
+
+            if (null != transaction)
             {
                 using (var command = new SqlCommand(q1.ToString(), connection))
                 {
+                    command.Transaction = transaction;
                     AddParameters(command.Parameters, vals);
                     if (command.ExecuteNonQuery() < 1)
                     {
@@ -496,11 +444,11 @@ namespace SilverSim.Database.MSSQL
             }
             else
             {
-                connection.InsideTransaction((transaction) =>
+                connection.InsideTransaction((transactioninternal) =>
                 {
                     using (var command = new SqlCommand(q1.ToString(), connection))
                     {
-                        command.Transaction = transaction;
+                        command.Transaction = transactioninternal;
                         AddParameters(command.Parameters, vals);
                         if (command.ExecuteNonQuery() < 1)
                         {

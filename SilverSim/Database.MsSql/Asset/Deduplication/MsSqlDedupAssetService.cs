@@ -21,7 +21,7 @@
 
 using log4net;
 using Nini.Config;
-using SilverSim.Database.MSSQL._Migration;
+using SilverSim.Database.MsSql._Migration;
 using SilverSim.Main.Common;
 using SilverSim.ServiceInterfaces.Asset;
 using SilverSim.ServiceInterfaces.Database;
@@ -35,7 +35,7 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Security.Cryptography;
 
-namespace SilverSim.Database.MSSQL.Asset.Deduplication
+namespace SilverSim.Database.MsSql.Asset.Deduplication
 {
     [Description("MsSql Deduplication Asset Backend")]
     [PluginName("DedupAssets")]
