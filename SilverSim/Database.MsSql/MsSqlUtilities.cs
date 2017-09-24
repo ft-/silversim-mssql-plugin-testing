@@ -463,7 +463,7 @@ namespace SilverSim.Database.MsSql
         #endregion
 
         #region Common INSERT INTO helper
-        public static void InsertInto(this SqlConnection connection, string tablename, Dictionary<string, object> vals)
+        public static void InsertInto(this SqlConnection connection, string tablename, Dictionary<string, object> vals, SqlTransaction transaction = null)
         {
             var q = new List<string>();
             foreach (KeyValuePair<string, object> kvp in vals)
@@ -545,6 +545,7 @@ namespace SilverSim.Database.MsSql
             q1.Append(")");
             using (var command = new SqlCommand(q1.ToString(), connection))
             {
+                command.Transaction = transaction;
                 AddParameters(command.Parameters, vals);
                 if (command.ExecuteNonQuery() < 1)
                 {
@@ -615,7 +616,7 @@ namespace SilverSim.Database.MsSql
             return updates;
         }
 
-        public static void UpdateSet(this SqlConnection connection, string tablename, Dictionary<string, object> vals, string where)
+        public static void UpdateSet(this SqlConnection connection, string tablename, Dictionary<string, object> vals, string where, SqlTransaction transaction = null)
         {
             SqlCommandBuilder b = new SqlCommandBuilder();
             string q1 = "UPDATE " + tablename + " SET ";
@@ -624,6 +625,7 @@ namespace SilverSim.Database.MsSql
 
             using (var command = new SqlCommand(q1 + " WHERE " + where, connection))
             {
+                command.Transaction = transaction;
                 AddParameters(command.Parameters, vals);
                 if (command.ExecuteNonQuery() < 1)
                 {
