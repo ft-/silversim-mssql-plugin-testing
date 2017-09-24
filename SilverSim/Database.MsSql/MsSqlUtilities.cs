@@ -62,10 +62,12 @@ namespace SilverSim.Database.MsSql
             if (config.Contains("Username"))
             {
                 sb.UserID = config.GetString("Username");
+                sb.IntegratedSecurity = false;
             }
             if (config.Contains("Password"))
             {
                 sb.Password = config.GetString("Password");
+                sb.IntegratedSecurity = false;
             }
             sb.InitialCatalog = config.GetString("Database");
 
