@@ -413,12 +413,16 @@ namespace SilverSim.Database.MsSql
                     updateParams.Append(p);
                 }
             }
-            q1.Append("UPDATE ");
-            q1.Append(quotedTableName);
-            q1.Append(" SET ");
-            q1.Append(updateParams);
-            q1.Append(" WHERE ");
-            q1.Append(whereParams);
+
+            if (updateParams.Length != 0)
+            {
+                q1.Append("UPDATE ");
+                q1.Append(quotedTableName);
+                q1.Append(" SET ");
+                q1.Append(updateParams);
+                q1.Append(" WHERE ");
+                q1.Append(whereParams);
+            }
 
             q1.Append("; INSERT INTO ");
             q1.Append(quotedTableName);
@@ -430,7 +434,7 @@ namespace SilverSim.Database.MsSql
             q1.Append(quotedTableName);
             q1.Append(" WHERE ");
             q1.Append(whereParams);
-            q1.Append(")");
+            q1.Append(");");
 
             if (null != transaction)
             {

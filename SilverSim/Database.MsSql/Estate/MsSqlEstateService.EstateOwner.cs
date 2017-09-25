@@ -69,7 +69,7 @@ namespace SilverSim.Database.MsSql.Estate
                                 UUI uui = reader.GetUUI("Owner");
                                 if (uui.EqualsGrid(owner))
                                 {
-                                    estates.Add((uint)reader["ID"]);
+                                    estates.Add((uint)(int)reader["ID"]);
                                 }
                             }
                             return estates;

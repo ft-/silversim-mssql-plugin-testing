@@ -64,7 +64,7 @@ namespace SilverSim.Database.MsSql.Estate
                     {
                         if (reader.Read())
                         {
-                            estateID = (uint)reader["EstateID"];
+                            estateID = (uint)(int)reader["EstateID"];
                             return true;
                         }
                     }
