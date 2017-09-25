@@ -320,7 +320,7 @@ namespace SilverSim.Database.MsSql.Inventory
 
                     try
                     {
-                        connection.InsertInto(m_InventoryFolderTable, newVals);
+                        connection.InsertInto(m_InventoryFolderTable, newVals, transaction);
                     }
                     catch
                     {
@@ -591,11 +591,11 @@ namespace SilverSim.Database.MsSql.Inventory
             }
         }
 
-        private void IncrementVersionNoExcept(UUID principalID, UUID folderID)
+        private void IncrementVersionNoExcept(UUID principalID, UUID folderID, SqlTransaction transaction = null)
         {
             try
             {
-                IncrementVersion(principalID, folderID);
+                IncrementVersion(principalID, folderID, transaction);
             }
             catch
             {

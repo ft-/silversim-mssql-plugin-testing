@@ -105,7 +105,7 @@ namespace SilverSim.Database.MsSql.Inventory
                     var matchStrings = new List<string>();
                     foreach (UUID itemid in itemids)
                     {
-                        matchStrings.Add(string.Format("\"{0}\"", itemid.ToString()));
+                        matchStrings.Add(string.Format("'{0}'", itemid.ToString()));
                     }
                     string qStr = string.Join(",", matchStrings);
                     using (var cmd = new SqlCommand("SELECT * FROM " + m_InventoryItemTable + " WHERE OwnerID = @ownerid AND ID IN (" + qStr + ")", connection))
@@ -292,6 +292,7 @@ namespace SilverSim.Database.MsSql.Inventory
                     }
                     using (var cmd = new SqlCommand("UPDATE " + m_InventoryItemTable + " SET ParentFolderID = @folderid WHERE ID = @itemid AND OwnerID = @ownerid", connection))
                     {
+                        cmd.Transaction = transaction;
                         cmd.Parameters.AddParameter("@folderid", toFolderID);
                         cmd.Parameters.AddParameter("@ownerid", principalID);
                         cmd.Parameters.AddParameter("@itemid", id);
@@ -309,7 +310,7 @@ namespace SilverSim.Database.MsSql.Inventory
         UUID IInventoryItemServiceInterface.Copy(UUID principalID, UUID id, UUID newFolder) =>
             CopyItem(principalID, id, newFolder);
 
-        private void IncrementVersion(UUID principalID, UUID folderID)
+        private void IncrementVersion(UUID principalID, UUID folderID, SqlTransaction transaction = null)
         {
             try
             {
@@ -318,6 +319,7 @@ namespace SilverSim.Database.MsSql.Inventory
                     connection.Open();
                     using (var cmd = new SqlCommand("UPDATE " + m_InventoryFolderTable + " SET Version = Version + 1 WHERE OwnerID = @ownerid AND ID = @folderid", connection))
                     {
+                        cmd.Transaction = transaction;
                         cmd.Parameters.AddParameter("@ownerid", principalID);
                         cmd.Parameters.AddParameter("@folderid", folderID);
                         if (cmd.ExecuteNonQuery() < 1)
