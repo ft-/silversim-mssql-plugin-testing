@@ -39,7 +39,7 @@ namespace SilverSim.Database.MsSql.Asset.Deduplication
 {
     [Description("MsSql Deduplication Asset Backend")]
     [PluginName("DedupAssets")]
-    public sealed partial class MsSqlDedupAssetService : AssetServiceInterface, IDBServiceInterface, IPlugin, IAssetMetadataServiceInterface, IAssetDataServiceInterface
+    public sealed partial class MsSqlDedupAssetService : AssetServiceInterface, IDBServiceInterface, IPlugin, IAssetMetadataServiceInterface, IAssetDataServiceInterface, IAssetMigrationSourceInterface
     {
         private static readonly ILog m_Log = LogManager.GetLogger("MSSQL DEDUP ASSET SERVICE");
 
@@ -81,7 +81,7 @@ namespace SilverSim.Database.MsSql.Asset.Deduplication
                         {
                             return false;
                         }
-                        updateRequired = dbReader.GetDate("access_time") - DateTime.UtcNow > TimeSpan.FromHours(1);
+                        updateRequired = DateTime.UtcNow - dbReader.GetDate("access_time") > TimeSpan.FromHours(1);
                     }
                 }
                 if(updateRequired)
@@ -126,7 +126,7 @@ namespace SilverSim.Database.MsSql.Asset.Deduplication
                         {
                             UUID id = dbReader.GetUUID("id");
                             res[id] = true;
-                            if (dbReader.GetDate("access_time") - DateTime.UtcNow > TimeSpan.FromHours(1))
+                            if (DateTime.UtcNow - dbReader.GetDate("access_time") > TimeSpan.FromHours(1))
                             {
                                 /* update access_time */
                                 using (var uconn = new SqlConnection(m_ConnectionString))
@@ -205,7 +205,7 @@ namespace SilverSim.Database.MsSql.Asset.Deduplication
                     }
                 }
 
-                if (asset.AccessTime - DateTime.UtcNow > TimeSpan.FromHours(1))
+                if (DateTime.UtcNow - asset.AccessTime > TimeSpan.FromHours(1))
                 {
                     /* update access_time */
                     using (var cmd = new SqlCommand("UPDATE assetrefs SET access_time = @access WHERE id = @id", conn))
@@ -475,6 +475,28 @@ namespace SilverSim.Database.MsSql.Asset.Deduplication
                 conn.Open();
                 conn.MigrateTables(Migrations, m_Log);
             }
+        }
+
+        public List<UUID> GetAssetList(long start, long count)
+        {
+            var result = new List<UUID>();
+            using (var conn = new SqlConnection(m_ConnectionString))
+            {
+                conn.Open();
+                using (var cmd = new SqlCommand("SELECT [id] FROM assetrefs ORDER BY [id] LIMIT @start, @count", conn))
+                {
+                    cmd.Parameters.AddParameter("start", start);
+                    cmd.Parameters.AddParameter("count", count);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            result.Add(reader.GetUUID("id"));
+                        }
+                    }
+                }
+            }
+            return result;
         }
 
         private static readonly IMigrationElement[] Migrations = new IMigrationElement[]
