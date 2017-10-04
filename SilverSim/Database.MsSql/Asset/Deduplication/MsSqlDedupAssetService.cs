@@ -198,7 +198,6 @@ namespace SilverSim.Database.MsSql.Asset.Deduplication
                             Name = (string)dbReader["name"],
                             CreateTime = dbReader.GetDate("create_time"),
                             AccessTime = dbReader.GetDate("access_time"),
-                            Creator = dbReader.GetUUI("CreatorID"),
                             Flags = dbReader.GetEnum<AssetFlags>("asset_flags"),
                             Temporary = (bool)dbReader["temporary"]
                         };
@@ -255,7 +254,6 @@ namespace SilverSim.Database.MsSql.Asset.Deduplication
                                 ID = dbReader.GetUUID("id"),
                                 Type = dbReader.GetEnum<AssetType>("assetType"),
                                 Name = (string)dbReader["name"],
-                                Creator = dbReader.GetUUI("CreatorID"),
                                 CreateTime = dbReader.GetDate("create_time"),
                                 AccessTime = dbReader.GetDate("access_time"),
                                 Flags = dbReader.GetEnum<AssetFlags>("asset_flags"),
@@ -401,8 +399,8 @@ namespace SilverSim.Database.MsSql.Asset.Deduplication
 
                         using (var cmd =
                             new SqlCommand(
-                                "INSERT INTO assetrefs (id, name, assetType, temporary, create_time, access_time, asset_flags, CreatorID, hash)" +
-                                " SELECT @id, @name, @assetType, @temporary, @create_time, @access_time, @asset_flags, @CreatorID, @hash WHERE NOT EXISTS (" +
+                                "INSERT INTO assetrefs (id, name, assetType, temporary, create_time, access_time, asset_flags, hash)" +
+                                " SELECT @id, @name, @assetType, @temporary, @create_time, @access_time, @asset_flags, @hash WHERE NOT EXISTS (" +
                                 "SELECT NULL FROM assetrefs WHERE id=@id);" +
                                 "UPDATE assetrefs SET access_time=@access_time WHERE id=@id;",
                                 conn))
@@ -424,7 +422,6 @@ namespace SilverSim.Database.MsSql.Asset.Deduplication
                             cmd.Parameters.AddParameter("@temporary", asset.Temporary);
                             cmd.Parameters.AddParameter("@create_time", now);
                             cmd.Parameters.AddParameter("@access_time", now);
-                            cmd.Parameters.AddParameter("@CreatorID", asset.Creator.ID);
                             cmd.Parameters.AddParameter("@asset_flags", asset.Flags);
                             cmd.Parameters.AddParameter("@hash", sha1data);
                             if (1 > cmd.ExecuteNonQuery())
@@ -525,6 +522,8 @@ namespace SilverSim.Database.MsSql.Asset.Deduplication
             new ChangeColumn<UUI>("CreatorID") { IsNullAllowed = false, Default = UUID.Zero },
             new TableRevision(3),
             new AddColumn<bool>("usesprocessed") { IsNullAllowed = false, Default = false },
+            new TableRevision(4),
+            new DropColumn("CreatorID"),
 
             new SqlTable("assetsinuse"),
             new AddColumn<UUID>("id") { IsNullAllowed = false },
