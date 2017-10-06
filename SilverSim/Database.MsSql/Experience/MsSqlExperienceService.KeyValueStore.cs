@@ -89,7 +89,6 @@ namespace SilverSim.Database.MsSql.Experience
 
         bool IExperienceKeyValueInterface.Remove(UUID experienceID, string key)
         {
-            var result = new List<string>();
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
