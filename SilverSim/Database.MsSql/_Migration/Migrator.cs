@@ -73,20 +73,20 @@ namespace SilverSim.Database.MsSql._Migration
             cmd += ");";
             cmd += string.Format("EXEC sys.{2} @name=N'table_revision', " +
             "@value = N'{1}', @level0type = N'SCHEMA', @level0name = N'dbo'," +
-            "@level1type = N'TABLE', @level1name = N'{0}';", table.Name, tableRevision, tableRevision == 1 ? "sp_addextendedproperty" : "sp_updateextendedproperty" );
+            "@level1type = N'TABLE', @level1name = N'{0}';", table.Name, tableRevision, "sp_addextendedproperty");
             ExecuteStatement(conn, cmd, log);
         }
 
         private static void CommentTable(this SqlConnection conn, string tablename, uint revision, ILog log)
         {
-            ExecuteStatement(conn, string.Format("EXEC sys.sp_addextendedproperty @name=N'table_revision', " +
+            ExecuteStatement(conn, string.Format("EXEC sys.{2} @name=N'table_revision', " +
             "@value = N'{1}', @level0type = N'SCHEMA', @level0name = N'dbo'," +
-            "@level1type = N'TABLE', @level1name = N'{0}';", tablename, revision), log);
+            "@level1type = N'TABLE', @level1name = N'{0}';", tablename, revision, revision == 1 ? "sp_addextendedproperty" : "sp_updateextendedproperty"), log);
         }
 
         public static void MigrateTables(this SqlConnection conn, IMigrationElement[] processTable, ILog log)
         {
-            SqlCommandBuilder b = new SqlCommandBuilder();
+            var b = new SqlCommandBuilder();
             var tableFields = new Dictionary<string, IColumnInfo>();
             PrimaryKeyInfo primaryKey = null;
             SqlTable table = null;
