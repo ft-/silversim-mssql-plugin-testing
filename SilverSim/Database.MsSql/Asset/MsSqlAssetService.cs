@@ -35,20 +35,20 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Security.Cryptography;
 
-namespace SilverSim.Database.MsSql.Asset.Deduplication
+namespace SilverSim.Database.MsSql.Asset
 {
-    [Description("MsSql Deduplication Asset Backend")]
-    [PluginName("DedupAssets")]
-    public sealed partial class MsSqlDedupAssetService : AssetServiceInterface, IDBServiceInterface, IPlugin, IAssetMetadataServiceInterface, IAssetDataServiceInterface, IAssetMigrationSourceInterface
+    [Description("MsSql Asset Backend")]
+    [PluginName("Assets")]
+    public sealed partial class MsSqlAssetService : AssetServiceInterface, IDBServiceInterface, IPlugin, IAssetMetadataServiceInterface, IAssetDataServiceInterface, IAssetMigrationSourceInterface
     {
-        private static readonly ILog m_Log = LogManager.GetLogger("MSSQL DEDUP ASSET SERVICE");
+        private static readonly ILog m_Log = LogManager.GetLogger("MSSQL ASSET SERVICE");
 
         private readonly string m_ConnectionString;
         private readonly MsSqlAssetReferencesService m_ReferencesService;
         private readonly RwLockedList<string> m_ConfigurationIssues;
 
         #region Constructor
-        public MsSqlDedupAssetService(ConfigurationLoader loader, IConfig ownSection)
+        public MsSqlAssetService(ConfigurationLoader loader, IConfig ownSection)
         {
             m_ConnectionString = MsSqlUtilities.BuildConnectionString(ownSection, m_Log);
             m_ConfigurationIssues = loader.KnownConfigurationIssues;
@@ -62,8 +62,8 @@ namespace SilverSim.Database.MsSql.Asset.Deduplication
         #endregion
 
         public override bool IsSameServer(AssetServiceInterface other) =>
-            other.GetType() == typeof(MsSqlDedupAssetService) &&
-                (m_ConnectionString == ((MsSqlDedupAssetService)other).m_ConnectionString);
+            other.GetType() == typeof(MsSqlAssetService) &&
+                (m_ConnectionString == ((MsSqlAssetService)other).m_ConnectionString);
 
         #region Exists methods
         public override bool Exists(UUID key)
@@ -272,9 +272,9 @@ namespace SilverSim.Database.MsSql.Asset.Deduplication
         #region References interface
         public sealed class MsSqlAssetReferencesService : AssetReferencesServiceInterface
         {
-            private readonly MsSqlDedupAssetService m_AssetService;
+            private readonly MsSqlAssetService m_AssetService;
 
-            internal MsSqlAssetReferencesService(MsSqlDedupAssetService assetService)
+            internal MsSqlAssetReferencesService(MsSqlAssetService assetService)
             {
                 m_AssetService = assetService;
             }
@@ -284,7 +284,7 @@ namespace SilverSim.Database.MsSql.Asset.Deduplication
 
         internal List<UUID> GetAssetRefs(UUID key)
         {
-            List<UUID> references = new List<UUID>();
+            var references = new List<UUID>();
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 bool processed;

@@ -28,9 +28,9 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading;
 
-namespace SilverSim.Database.MsSql.Asset.Deduplication
+namespace SilverSim.Database.MsSql.Asset
 {
-    public sealed partial class MsSqlDedupAssetService : IAssetPurgeServiceInterface, IQueueStatsAccess
+    public sealed partial class MsSqlAssetService : IAssetPurgeServiceInterface, IQueueStatsAccess
     {
         public void MarkAssetAsUsed(List<UUID> assetIDs)
         {
