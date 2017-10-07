@@ -827,9 +827,9 @@ namespace SilverSim.Database.MsSql
         #region Migrations helper
         public static uint GetTableRevision(this SqlConnection connection, string name)
         {
-            using (var cmd = new SqlCommand("SELECT value FROM fn_listextendedproperty(NULL, 'schema', 'dbo', 'table', @name, default, default) WHERE name = N'table_revision'", connection))
+            using (var cmd = new SqlCommand("SELECT cast(value as varchar(255)) AS value FROM sys.extended_properties where major_id = OBJECT_ID(@name) AND name = N'table_revision';", connection))
             {
-                cmd.Parameters.AddWithValue("@name", name);
+                cmd.Parameters.AddWithValue("@name", "dbo." + name);
                 using (SqlDataReader dbReader = cmd.ExecuteReader())
                 {
                     if (dbReader.Read())

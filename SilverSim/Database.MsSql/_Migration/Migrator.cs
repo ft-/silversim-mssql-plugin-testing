@@ -71,9 +71,9 @@ namespace SilverSim.Database.MsSql._Migration
             string cmd = "CREATE TABLE " + escapedTableName + " (";
             cmd += string.Join(",", fieldSqls);
             cmd += ");";
-            cmd += string.Format("EXEC sys.sp_addextendedproperty @name=N'table_revision', " +
+            cmd += string.Format("EXEC sys.{2} @name=N'table_revision', " +
             "@value = N'{1}', @level0type = N'SCHEMA', @level0name = N'dbo'," +
-            "@level1type = N'TABLE', @level1name = N'{0}';", table.Name, tableRevision);
+            "@level1type = N'TABLE', @level1name = N'{0}';", table.Name, tableRevision, tableRevision == 1 ? "sp_addextendedproperty" : "sp_updateextendedproperty" );
             ExecuteStatement(conn, cmd, log);
         }
 
