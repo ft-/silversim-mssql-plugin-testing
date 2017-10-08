@@ -33,7 +33,7 @@ namespace SilverSim.Database.MsSql.Inventory
         {
             ParentFolderID = reader.GetUUID("ParentFolderID"),
             Name = (string)reader["Name"],
-            InventoryType = reader.GetEnum<InventoryType>("InventoryType"),
+            DefaultType = reader.GetEnum<AssetType>("DefaultType"),
             Owner = new UUI(reader.GetUUID("OwnerID")),
             Version = (int)reader["Version"]
         };
@@ -43,7 +43,7 @@ namespace SilverSim.Database.MsSql.Inventory
             ["ID"] = folder.ID,
             ["ParentFolderID"] = folder.ParentFolderID,
             ["Name"] = folder.Name,
-            ["InventoryType"] = folder.InventoryType,
+            ["DefaultType"] = folder.DefaultType,
             ["OwnerID"] = folder.Owner.ID,
             ["Version"] = folder.Version
         };

@@ -304,7 +304,7 @@ namespace SilverSim.Database.MsSql.Inventory
                 ["ParentFolderID"] = folder.ParentFolderID,
                 ["OwnerID"] = folder.Owner.ID,
                 ["Name"] = folder.Name,
-                ["InventoryType"] = folder.InventoryType,
+                ["DefaultType"] = folder.DefaultType,
                 ["Version"] = folder.Version
             };
 

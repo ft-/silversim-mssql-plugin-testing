@@ -68,6 +68,8 @@ namespace SilverSim.Database.MsSql.Inventory
                 new NamedKeyInfo("inventoryfolders_owner_index", "OwnerID"),
                 new NamedKeyInfo("inventoryfolders_owner_folderid", "OwnerID", "ParentFolderID"),
                 new NamedKeyInfo("inventoryfolders_owner_type", "OwnerID", "InventoryType"),
+                new TableRevision(2),
+                new ChangeColumn<InventoryType>("DefaultType") { IsNullAllowed = false, Default = InventoryType.Unknown, OldName = "InventoryType" },
 
                 new SqlTable(m_InventoryItemTable),
                 new AddColumn<UUID>("ID") { IsNullAllowed = false, Default = UUID.Zero },
