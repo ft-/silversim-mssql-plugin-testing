@@ -89,7 +89,7 @@ namespace SilverSim.Database.MsSql._Migration
 
         private string FieldSql()
         {
-            SqlCommandBuilder b = new SqlCommandBuilder();
+            var b = new SqlCommandBuilder();
             var fieldNames = new List<string>();
             foreach (string fName in FieldNames)
             {
@@ -100,8 +100,8 @@ namespace SilverSim.Database.MsSql._Migration
 
         public string Sql(string tableName)
         {
-            SqlCommandBuilder b = new SqlCommandBuilder();
-            return "CREATE " + (IsUnique ? " UNIQUE " : "") + b.QuoteIdentifier(tableName + "_" + Name) + " ON " + b.QuoteIdentifier(tableName) + " " + FieldSql() + ";";
+            var b = new SqlCommandBuilder();
+            return "CREATE " + (IsUnique ? "UNIQUE " : "") + "INDEX " + b.QuoteIdentifier(tableName + "_" + Name) + " ON " + b.QuoteIdentifier(tableName) + " " + FieldSql() + ";";
         }
     }
 

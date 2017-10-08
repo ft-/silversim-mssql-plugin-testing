@@ -52,6 +52,7 @@ namespace SilverSim.Database.MsSql._Migration
             SqlTable table,
             PrimaryKeyInfo primaryKey,
             Dictionary<string, IColumnInfo> fields,
+            Dictionary<string, NamedKeyInfo> tableKeys,
             uint tableRevision,
             ILog log)
         {
@@ -71,6 +72,10 @@ namespace SilverSim.Database.MsSql._Migration
             string cmd = "CREATE TABLE " + escapedTableName + " (";
             cmd += string.Join(",", fieldSqls);
             cmd += ");";
+            foreach (NamedKeyInfo key in tableKeys.Values)
+            {
+                cmd += key.Sql(table.Name);
+            }
             cmd += string.Format("EXEC sys.{2} @name=N'table_revision', " +
             "@value = N'{1}', @level0type = N'SCHEMA', @level0name = N'dbo'," +
             "@level1type = N'TABLE', @level1name = N'{0}';", table.Name, tableRevision, "sp_addextendedproperty");
@@ -89,6 +94,7 @@ namespace SilverSim.Database.MsSql._Migration
             var b = new SqlCommandBuilder();
             var tableFields = new Dictionary<string, IColumnInfo>();
             PrimaryKeyInfo primaryKey = null;
+            var tableKeys = new Dictionary<string, NamedKeyInfo>();
             SqlTable table = null;
             uint processingTableRevision = 0;
             uint currentAtRevision = 0;
@@ -125,10 +131,12 @@ namespace SilverSim.Database.MsSql._Migration
                                 table,
                                 primaryKey,
                                 tableFields,
+                                tableKeys,
                                 processingTableRevision,
                                 log);
                         }
                         tableFields.Clear();
+                        tableKeys.Clear();
                         primaryKey = null;
                     }
                     table = (SqlTable)migration;
@@ -194,13 +202,48 @@ namespace SilverSim.Database.MsSql._Migration
                     {
                         var columnInfo = (IChangeColumn)migration;
                         IColumnInfo oldColumn;
-                        if (!tableFields.TryGetValue(columnInfo.Name, out oldColumn))
+                        if (columnInfo.OldName?.Length != 0)
+                        {
+                            if (!tableFields.TryGetValue(columnInfo.OldName, out oldColumn))
+                            {
+                                throw new ArgumentException("Change column for " + columnInfo.Name + " has no preceeding AddColumn for " + columnInfo.OldName);
+                            }
+                        }
+                        else if (!tableFields.TryGetValue(columnInfo.Name, out oldColumn))
                         {
                             throw new ArgumentException("Change column for " + columnInfo.Name + " has no preceeding AddColumn");
                         }
                         if (insideTransaction != null)
                         {
                             ExecuteStatement(conn, columnInfo.Sql(table.Name, oldColumn.FieldType), log);
+                        }
+                        if (columnInfo.OldName?.Length != 0)
+                        {
+                            tableFields.Remove(columnInfo.OldName);
+                            if(primaryKey != null)
+                            {
+                                string[] fields = primaryKey.FieldNames;
+                                int n = fields.Length;
+                                for (int i = 0; i < n; ++i)
+                                {
+                                    if (fields[i] == columnInfo.OldName)
+                                    {
+                                        fields[i] = columnInfo.Name;
+                                    }
+                                }
+                            }
+                            foreach (NamedKeyInfo keyinfo in tableKeys.Values)
+                            {
+                                string[] fields = keyinfo.FieldNames;
+                                int n = fields.Length;
+                                for (int i = 0; i < n; ++i)
+                                {
+                                    if (fields[i] == columnInfo.OldName)
+                                    {
+                                        fields[i] = columnInfo.Name;
+                                    }
+                                }
+                            }
                         }
                         tableFields[columnInfo.Name] = columnInfo;
                     }
@@ -236,6 +279,7 @@ namespace SilverSim.Database.MsSql._Migration
                     else if (migrationType == typeof(NamedKeyInfo))
                     {
                         var namedKey = (NamedKeyInfo)migration;
+                        tableKeys.Add(namedKey.Name, namedKey);
                         if (insideTransaction != null)
                         {
                             ExecuteStatement(conn, namedKey.Sql(table.Name), log);
@@ -244,6 +288,7 @@ namespace SilverSim.Database.MsSql._Migration
                     else if (migrationType == typeof(DropNamedKeyInfo))
                     {
                         var namedKey = (DropNamedKeyInfo)migration;
+                        tableKeys.Remove(namedKey.Name);
                         if (insideTransaction != null)
                         {
                             ExecuteStatement(conn, namedKey.Sql(table.Name), log);
@@ -273,6 +318,7 @@ namespace SilverSim.Database.MsSql._Migration
                     table,
                     primaryKey,
                     tableFields,
+                    tableKeys,
                     processingTableRevision,
                     log);
             }
