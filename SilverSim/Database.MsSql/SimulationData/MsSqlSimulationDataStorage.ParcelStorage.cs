@@ -116,17 +116,40 @@ namespace SilverSim.Database.MsSql.SimulationData
             }
         }
 
+        private static readonly string[] ParcelTables = new string[]
+        {
+            "parcelexperiences",
+            "regionexperiences",
+            "regiontrustedexperiences",
+            "parcelaccesswhitelist",
+            "parcelaccessblacklist",
+            "parcellandpasslist"
+        };
+
         bool ISimulationDataParcelStorageInterface.Remove(UUID regionID, UUID parcelID)
         {
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("DELETE FROM parcels WHERE RegionID = @regionid AND ParcelID = @parcelid", connection))
+                return connection.InsideTransaction((transaction) =>
                 {
-                    cmd.Parameters.AddParameter("@regionid", regionID);
-                    cmd.Parameters.AddParameter("@parcelid", parcelID);
-                    return cmd.ExecuteNonQuery() > 0;
-                }
+                    foreach(string parcel in ParcelTables)
+                    {
+                        using (var cmd = new SqlCommand("DELETE FROM " + parcel + " WHERE RegionID = @regionid AND ParcelID = @parcelid", connection))
+                        {
+                            cmd.Parameters.AddParameter("@regionid", regionID);
+                            cmd.Parameters.AddParameter("@parcelid", parcelID);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+
+                    using (var cmd = new SqlCommand("DELETE FROM parcels WHERE RegionID = @regionid AND ParcelID = @parcelid", connection))
+                    {
+                        cmd.Parameters.AddParameter("@regionid", regionID);
+                        cmd.Parameters.AddParameter("@parcelid", parcelID);
+                        return cmd.ExecuteNonQuery() > 0;
+                    }
+                });
             }
         }
 
