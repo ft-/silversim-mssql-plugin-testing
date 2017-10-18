@@ -133,7 +133,10 @@ namespace SilverSim.Database.MsSql.SimulationData
                 {
                     foreach(string parcel in ParcelTables)
                     {
-                        using (var cmd = new SqlCommand("DELETE FROM " + parcel + " WHERE RegionID = @regionid AND ParcelID = @parcelid", connection))
+                        using (var cmd = new SqlCommand("DELETE FROM " + parcel + " WHERE RegionID = @regionid AND ParcelID = @parcelid", connection)
+                        {
+                            Transaction = transaction
+                        })
                         {
                             cmd.Parameters.AddParameter("@regionid", regionID);
                             cmd.Parameters.AddParameter("@parcelid", parcelID);
@@ -141,7 +144,10 @@ namespace SilverSim.Database.MsSql.SimulationData
                         }
                     }
 
-                    using (var cmd = new SqlCommand("DELETE FROM parcels WHERE RegionID = @regionid AND ParcelID = @parcelid", connection))
+                    using (var cmd = new SqlCommand("DELETE FROM parcels WHERE RegionID = @regionid AND ParcelID = @parcelid", connection)
+                    {
+                        Transaction = transaction
+                    })
                     {
                         cmd.Parameters.AddParameter("@regionid", regionID);
                         cmd.Parameters.AddParameter("@parcelid", parcelID);
