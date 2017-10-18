@@ -56,17 +56,21 @@ namespace SilverSim.Database.MsSql.SimulationData
                 {
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        var entry = new ParcelAccessEntry()
+                        while (reader.Read())
                         {
-                            ParcelID = reader.GetUUID("ParcelID"),
-                            Accessor = reader.GetUUI("Accessor")
-                        };
-                        var val = (ulong)(long)reader["ExpiresAt"];
-                        if (val != 0)
-                        {
-                            entry.ExpiresAt = Date.UnixTimeToDateTime(val);
+                            var entry = new ParcelAccessEntry
+                            {
+                                RegionID = regionID,
+                                ParcelID = reader.GetUUID("ParcelID"),
+                                Accessor = reader.GetUUI("Accessor")
+                            };
+                            var val = (ulong)(long)reader["ExpiresAt"];
+                            if (val != 0)
+                            {
+                                entry.ExpiresAt = Date.UnixTimeToDateTime(val);
+                            }
+                            result.Add(entry);
                         }
-                        result.Add(entry);
                     }
                 }
             }
@@ -79,7 +83,7 @@ namespace SilverSim.Database.MsSql.SimulationData
                 e = null;
                 return false;
             }
-            e = en.GetEnumerator().Current;
+            e = enumerator.Current;
             return true;
         }
 
@@ -111,7 +115,7 @@ namespace SilverSim.Database.MsSql.SimulationData
                         {
                             while (reader.Read())
                             {
-                                var entry = new ParcelAccessEntry()
+                                var entry = new ParcelAccessEntry
                                 {
                                     RegionID = reader.GetUUID("RegionID"),
                                     ParcelID = reader.GetUUID("ParcelID"),
@@ -181,7 +185,7 @@ namespace SilverSim.Database.MsSql.SimulationData
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("DELETE FROM " + m_TableName + " WHERE [RegionID] = '" + regionID.ToString() + "' AND [ParcelID] = '" + parcelID.ToString() + "' AND Accessor LIKE '" + accessor.ID.ToString() + "%'", connection))
+                using (var cmd = new SqlCommand("DELETE FROM " + m_TableName + " WHERE [RegionID] = '" + regionID.ToString() + "' AND [ParcelID] = '" + parcelID.ToString() + "' AND [Accessor] LIKE '" + accessor.ID.ToString() + "%'", connection))
                 {
                     return cmd.ExecuteNonQuery() > 0;
                 }
