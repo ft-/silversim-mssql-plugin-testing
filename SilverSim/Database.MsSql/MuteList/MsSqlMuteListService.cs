@@ -141,7 +141,7 @@ namespace SilverSim.Database.MsSql.MuteList
             new AddColumn<string>("muteName") { Cardinality = 255, IsNullAllowed = false, Default = string.Empty },
             new AddColumn<MuteFlags>("flags") { IsNullAllowed = false, Default = MuteFlags.None },
             new AddColumn<MuteType>("type") { IsNullAllowed = false, Default = MuteType.ByAgent },
-            new PrimaryKeyInfo("agentID", "muteID", "MuteName"),
+            new PrimaryKeyInfo("agentID", "muteID", "muteName"),
             new NamedKeyInfo("agentID", "agentID")
         };
 
