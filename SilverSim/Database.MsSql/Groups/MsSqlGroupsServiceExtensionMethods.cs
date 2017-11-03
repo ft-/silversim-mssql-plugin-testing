@@ -56,7 +56,7 @@ namespace SilverSim.Database.MsSql.Groups
 
         public static GroupRole ToGroupRole(this SqlDataReader reader, string prefix = "")
         {
-            var role = new GroupRole()
+            var role = new GroupRole
             {
                 Group = new UGI(reader.GetUUID("GroupID")),
                 ID = reader.GetUUID("RoleID"),
@@ -77,7 +77,7 @@ namespace SilverSim.Database.MsSql.Groups
             return role;
         }
 
-        public static GroupMember ToGroupMember(this SqlDataReader reader) => new GroupMember()
+        public static GroupMember ToGroupMember(this SqlDataReader reader) => new GroupMember
         {
             Group = new UGI(reader.GetUUID("GroupID")),
             Principal = new UUI(reader.GetUUID("PrincipalID")),
@@ -88,7 +88,7 @@ namespace SilverSim.Database.MsSql.Groups
             AccessToken = (string)reader["AccessToken"]
         };
 
-        public static GroupRolemember ToGroupRolemember(this SqlDataReader reader) => new GroupRolemember()
+        public static GroupRolemember ToGroupRolemember(this SqlDataReader reader) => new GroupRolemember
         {
             Group = new UGI(reader.GetUUID("GroupID")),
             RoleID = reader.GetUUID("RoleID"),
@@ -96,7 +96,7 @@ namespace SilverSim.Database.MsSql.Groups
             Powers = reader.GetEnum<GroupPowers>("Powers")
         };
 
-        public static GroupRolemember ToGroupRolememberEveryone(this SqlDataReader reader, GroupPowers powers) => new GroupRolemember()
+        public static GroupRolemember ToGroupRolememberEveryone(this SqlDataReader reader, GroupPowers powers) => new GroupRolemember
         {
             Group = new UGI(reader.GetUUID("GroupID")),
             RoleID = UUID.Zero,
@@ -104,7 +104,7 @@ namespace SilverSim.Database.MsSql.Groups
             Powers = powers
         };
 
-        public static GroupRolemembership ToGroupRolemembership(this SqlDataReader reader) => new GroupRolemembership()
+        public static GroupRolemembership ToGroupRolemembership(this SqlDataReader reader) => new GroupRolemembership
         {
             Group = new UGI(reader.GetUUID("GroupID")),
             RoleID = reader.GetUUID("RoleID"),
@@ -113,7 +113,7 @@ namespace SilverSim.Database.MsSql.Groups
             GroupTitle = (string)reader["Title"]
         };
 
-        public static GroupRolemembership ToGroupRolemembershipEveryone(this SqlDataReader reader, GroupPowers powers) => new GroupRolemembership()
+        public static GroupRolemembership ToGroupRolemembershipEveryone(this SqlDataReader reader, GroupPowers powers) => new GroupRolemembership
         {
             Group = new UGI(reader.GetUUID("GroupID")),
             RoleID = UUID.Zero,
@@ -121,7 +121,7 @@ namespace SilverSim.Database.MsSql.Groups
             Powers = powers
         };
 
-        public static GroupInvite ToGroupInvite(this SqlDataReader reader) => new GroupInvite()
+        public static GroupInvite ToGroupInvite(this SqlDataReader reader) => new GroupInvite
         {
             ID = reader.GetUUID("InviteID"),
             Group = new UGI(reader.GetUUID("GroupID")),
@@ -130,7 +130,7 @@ namespace SilverSim.Database.MsSql.Groups
             Timestamp = reader.GetDate("Timestamp")
         };
 
-        public static GroupNotice ToGroupNotice(this SqlDataReader reader) => new GroupNotice()
+        public static GroupNotice ToGroupNotice(this SqlDataReader reader) => new GroupNotice
         {
             Group = new UGI(reader.GetUUID("GroupID")),
             ID = reader.GetUUID("NoticeID"),

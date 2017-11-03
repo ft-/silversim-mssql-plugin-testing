@@ -244,7 +244,7 @@ namespace SilverSim.Database.MsSql.Groups
                     {
                         if (reader.Read())
                         {
-                            ugi = new UGI()
+                            ugi = new UGI
                             {
                                 ID = groupID
                             };

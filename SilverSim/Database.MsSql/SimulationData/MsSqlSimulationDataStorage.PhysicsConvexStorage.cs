@@ -118,7 +118,7 @@ namespace SilverSim.Database.MsSql.SimulationData
                     {
                         if (dbReader.Read())
                         {
-                            shape = new PhysicsConvexShape()
+                            shape = new PhysicsConvexShape
                             {
                                 SerializedData = dbReader.GetBytes("ConvexData")
                             };
@@ -144,7 +144,7 @@ namespace SilverSim.Database.MsSql.SimulationData
                     {
                         if (dbReader.Read())
                         {
-                            shape = new PhysicsConvexShape()
+                            shape = new PhysicsConvexShape
                             {
                                 SerializedData = dbReader.GetBytes("ConvexData")
                             };

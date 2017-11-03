@@ -128,7 +128,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
             return list;
         }
 
-        private UUI GetUUIFromReader(SqlDataReader reader) => new UUI()
+        private UUI GetUUIFromReader(SqlDataReader reader) => new UUI
         {
             FirstName = (string)reader["FirstName"],
             LastName = (string)reader["LastName"],

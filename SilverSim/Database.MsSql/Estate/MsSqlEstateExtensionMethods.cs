@@ -26,7 +26,7 @@ namespace SilverSim.Database.MsSql.Estate
 {
     public static class MsSqlEstateExtensionMethods
     {
-        public static EstateInfo ToEstateInfo(this SqlDataReader reader) => new EstateInfo()
+        public static EstateInfo ToEstateInfo(this SqlDataReader reader) => new EstateInfo
         {
             ID = (uint)(int)reader["ID"],
             Name = (string)reader["Name"],

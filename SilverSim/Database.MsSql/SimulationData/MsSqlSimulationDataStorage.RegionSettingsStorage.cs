@@ -29,7 +29,7 @@ namespace SilverSim.Database.MsSql.SimulationData
 {
     public sealed partial class MsSqlSimulationDataStorage : ISimulationDataRegionSettingsStorageInterface
     {
-        private RegionSettings ToRegionSettings(SqlDataReader reader) => new RegionSettings()
+        private RegionSettings ToRegionSettings(SqlDataReader reader) => new RegionSettings
         {
             BlockTerraform = (bool)reader["BlockTerraform"],
             BlockFly = (bool)reader["BlockFly"],

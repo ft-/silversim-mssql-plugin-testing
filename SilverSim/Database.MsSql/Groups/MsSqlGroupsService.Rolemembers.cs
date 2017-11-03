@@ -294,7 +294,7 @@ namespace SilverSim.Database.MsSql.Groups
                 if (Members.TryGetValue(requestingAgent, group, principal, out gmem) &&
                     Roles.TryGetValue(requestingAgent, group, UUID.Zero, out role))
                 {
-                    grolemem = new GroupRolemember()
+                    grolemem = new GroupRolemember
                     {
                         Powers = role.Powers,
                         Principal = ResolveName(principal),

@@ -29,7 +29,7 @@ namespace SilverSim.Database.MsSql.Groups
 {
     public sealed partial class MsSqlGroupsService : GroupsServiceInterface.IGroupMembershipsInterface
     {
-        private GroupMembership MembershipFromReader(SqlDataReader reader, UUI requestingAgent) => new GroupMembership()
+        private GroupMembership MembershipFromReader(SqlDataReader reader, UUI requestingAgent) => new GroupMembership
         {
             IsAcceptNotices = (bool)reader["AcceptNotices"],
             Contribution = (int)reader["Contribution"],

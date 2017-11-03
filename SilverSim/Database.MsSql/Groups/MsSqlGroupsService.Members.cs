@@ -111,7 +111,7 @@ namespace SilverSim.Database.MsSql.Groups
                 conn.InsertInto("groupmemberships", vals);
             }
 
-            return new GroupMember()
+            return new GroupMember
             {
                 Principal = principal,
                 Group = group,
