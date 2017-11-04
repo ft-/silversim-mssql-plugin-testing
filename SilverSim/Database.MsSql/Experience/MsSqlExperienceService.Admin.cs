@@ -65,15 +65,31 @@ namespace SilverSim.Database.MsSql.Experience
 
             set
             {
-                var vals = new Dictionary<string, object>
+                if (value)
                 {
-                    ["ExperienceID"] = experienceID,
-                    ["Admin"] = agent,
-                };
-                using (var conn = new SqlConnection(m_ConnectionString))
+                    var vals = new Dictionary<string, object>
+                    {
+                        ["ExperienceID"] = experienceID,
+                        ["Admin"] = agent,
+                    };
+                    using (var conn = new SqlConnection(m_ConnectionString))
+                    {
+                        conn.Open();
+                        conn.ReplaceInto("experienceadmins", vals, new string[] { "ExperienceID", "Admin" });
+                    }
+                }
+                else
                 {
-                    conn.Open();
-                    conn.ReplaceInto("experienceadmins", vals, new string[] { "ExperienceID", "Admin" });
+                    using (var conn = new SqlConnection(m_ConnectionString))
+                    {
+                        conn.Open();
+                        using (var cmd = new SqlCommand("DELETE FROM experienceadmins WHERE [ExperienceID] = @experienceid AND [Admin] LIKE @admin", conn))
+                        {
+                            cmd.Parameters.AddParameter("@experienceid", experienceID);
+                            cmd.Parameters.AddParameter("@admin", agent.ID.ToString() + "%");
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
                 }
             }
         }
