@@ -305,7 +305,6 @@ namespace SilverSim.Database.MsSql._Migration
             {
                 CommentTable(conn, table.Name, processingTableRevision, log);
                 insideTransaction.Commit();
-                insideTransaction = null;
                 if (currentAtRevision != 0)
                 {
                     currentAtRevision = processingTableRevision;
