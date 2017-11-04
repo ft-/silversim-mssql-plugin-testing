@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Text;
 using MsSqlMigrationException = SilverSim.Database.MsSql.MsSqlUtilities.MsSqlMigrationException;
 
 namespace SilverSim.Database.MsSql._Migration
@@ -69,17 +70,17 @@ namespace SilverSim.Database.MsSql._Migration
             }
 
             string escapedTableName = b.QuoteIdentifier(table.Name);
-            string cmd = "CREATE TABLE " + escapedTableName + " (";
-            cmd += string.Join(",", fieldSqls);
-            cmd += ");";
+            var cmd = new StringBuilder("CREATE TABLE " + escapedTableName + " (");
+            cmd.Append(string.Join(",", fieldSqls));
+            cmd.Append(");");
             foreach (NamedKeyInfo key in tableKeys.Values)
             {
-                cmd += key.Sql(table.Name);
+                cmd.Append(key.Sql(table.Name));
             }
-            cmd += string.Format("EXEC sys.{2} @name=N'table_revision', " +
+            cmd.AppendFormat("EXEC sys.{2} @name=N'table_revision', " +
             "@value = N'{1}', @level0type = N'SCHEMA', @level0name = N'dbo'," +
             "@level1type = N'TABLE', @level1name = N'{0}';", table.Name, tableRevision, "sp_addextendedproperty");
-            ExecuteStatement(conn, cmd, log);
+            ExecuteStatement(conn, cmd.ToString(), log);
         }
 
         private static void CommentTable(this SqlConnection conn, string tablename, uint revision, ILog log)

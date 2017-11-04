@@ -70,7 +70,11 @@ namespace SilverSim.Database.MsSql.SimulationData
                 public int CompareTo(PrimKey other)
                 {
                     int i = PartID.CompareTo(other.PartID);
-                    if (i == 0) i = ItemID.CompareTo(other.ItemID);
+                    if (i == 0)
+                    {
+                        i = ItemID.CompareTo(other.ItemID);
+                    }
+
                     return i;
                 }
 
@@ -335,8 +339,6 @@ namespace SilverSim.Database.MsSql.SimulationData
 
             protected override void OnIdle()
             {
-                var sb = new StringBuilder();
-
                 using (var conn = new SqlConnection(m_ConnectionString))
                 {
                     conn.Open();
