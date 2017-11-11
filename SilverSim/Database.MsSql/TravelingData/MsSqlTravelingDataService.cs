@@ -160,7 +160,7 @@ namespace SilverSim.Database.MsSql.TravelingData
                         cmd.Parameters.AddParameter("@id", sessionID);
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
-                            while (reader.Read())
+                            if (reader.Read())
                             {
                                 outinfo = reader.ToTravelingData();
                             }
