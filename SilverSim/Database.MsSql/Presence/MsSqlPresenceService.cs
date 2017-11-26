@@ -148,12 +148,19 @@ namespace SilverSim.Database.MsSql.Presence
         {
             get
             {
+                bool isUserIdSet = userID != UUID.Zero;
                 using (var conn = new SqlConnection(m_ConnectionString))
                 {
                     conn.Open();
-                    using (var cmd = new SqlCommand("SELECT * FROM presence WHERE SessionID = @sessionID", conn))
+                    using (var cmd = new SqlCommand(isUserIdSet ?
+                        "SELECT * FROM presence WHERE SessionID = @sessionID AND UserID = @userid" :
+                        "SELECT * FROM presence WHERE SessionID = @sessionID", conn))
                     {
                         cmd.Parameters.AddParameter("@sessionID", sessionID);
+                        if(isUserIdSet)
+                        {
+                            cmd.Parameters.AddParameter("@userid", userID);
+                        }
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.Read())
@@ -195,7 +202,7 @@ namespace SilverSim.Database.MsSql.Presence
                 ["UserID"] = pInfo.UserID.ID,
                 ["SessionID"] = pInfo.SessionID,
                 ["SecureSessionID"] = pInfo.SecureSessionID,
-                ["RegionID"] = UUID.Zero,
+                ["RegionID"] = pInfo.RegionID,
                 ["LastSeen"] = Date.Now
             };
             using (var conn = new SqlConnection(m_ConnectionString))
