@@ -155,7 +155,10 @@ namespace SilverSim.Database.MsSql.TravelingData
                 connection.Open();
                 bool res = connection.InsideTransaction((transaction) =>
                 {
-                    using (var cmd = new SqlCommand("SELECT * FROM travelingdata WHERE SessionID = @id", connection))
+                    using (var cmd = new SqlCommand("SELECT * FROM travelingdata WHERE SessionID = @id", connection)
+                    {
+                        Transaction = transaction
+                    })
                     {
                         cmd.Parameters.AddParameter("@id", sessionID);
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -201,7 +204,10 @@ namespace SilverSim.Database.MsSql.TravelingData
                 connection.Open();
                 bool res = connection.InsideTransaction((transaction) =>
                 {
-                    using (var cmd = new SqlCommand("SELECT * FROM travelingdata WHERE UserID = @id LIMIT 1", connection))
+                    using (var cmd = new SqlCommand("SELECT * FROM travelingdata WHERE UserID = @id", connection)
+                    {
+                        Transaction = transaction
+                    })
                     {
                         cmd.Parameters.AddParameter("@id", agentID);
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -236,7 +242,7 @@ namespace SilverSim.Database.MsSql.TravelingData
                 ["GridExternalName"] = data.GridExternalName,
                 ["ServiceToken"] = data.ServiceToken,
                 ["ClientIPAddress"] = data.ClientIPAddress,
-                ["Timestamp"] = Date.Now
+                ["Timestamp"] = data.Timestamp
             };
             using (var connection = new SqlConnection(m_ConnectionString))
             {
