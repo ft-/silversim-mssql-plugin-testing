@@ -123,7 +123,7 @@ namespace SilverSim.Database.MsSql.Maptile
                     ["LocX"] = data.Location.X,
                     ["LocY"] = data.Location.Y,
                     ["ScopeID"] = data.ScopeID,
-                    ["LastUpdate"] = Date.Now,
+                    ["LastUpdate"] = data.LastUpdate,
                     ["ContentType"] = data.ContentType,
                     ["ZoomLevel"] = data.ZoomLevel,
                     ["Data"] = data.Data
@@ -137,7 +137,7 @@ namespace SilverSim.Database.MsSql.Maptile
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("DELETE FROM maptiles WHERE LocX = @locx AND LocY = @locy AND ZoomLevel = @zoomlevel AN ScopeID = @scopeid", connection))
+                using (var cmd = new SqlCommand("DELETE FROM maptiles WHERE LocX = @locx AND LocY = @locy AND ZoomLevel = @zoomlevel AND ScopeID = @scopeid", connection))
                 {
                     cmd.Parameters.AddParameter("@locx", location.X);
                     cmd.Parameters.AddParameter("@locy", location.Y);
@@ -155,7 +155,7 @@ namespace SilverSim.Database.MsSql.Maptile
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT LocX, LocY, LastUpdate FROM maptiles WHERE ScopeID = @scopeid AND ZoomLevel = @zoomlevel AND locX >= @locxlow AND locY >= @locylow AND locX <= @locxhigh AND locY <= @locyhigh", connection))
+                using (var cmd = new SqlCommand("SELECT LocX, LocY, LastUpdate FROM maptiles WHERE ScopeID = @scopeid AND ZoomLevel = @zoomlevel AND LocX >= @locxlow AND LocY >= @locylow AND LocX <= @locxhigh AND LocY <= @locyhigh", connection))
                 {
                     cmd.Parameters.AddParameter("@scopeid", scopeid);
                     cmd.Parameters.AddParameter("@zoomlevel", zoomlevel);
