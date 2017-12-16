@@ -496,7 +496,10 @@ namespace SilverSim.Database.MsSql.SimulationData
                     ["ExtendedMeshData"] = objpart.ExtendedMesh.DbSerialization,
                     ["IsSitTargetActive"] = objpart.IsSitTargetActive,
                     ["IsScriptedSitOnly"] = objpart.IsScriptedSitOnly,
-                    ["AllowUnsit"] = objpart.AllowUnsit
+                    ["AllowUnsit"] = objpart.AllowUnsit,
+                    ["IsUnSitTargetActive"] = objpart.IsUnSitTargetActive,
+                    ["UnSitTargetOffset"] = objpart.UnSitTargetOffset,
+                    ["UnSitTargetOrientation"] = objpart.UnSitTargetOrientation
                 };
                 using (var ms = new MemoryStream())
                 {
