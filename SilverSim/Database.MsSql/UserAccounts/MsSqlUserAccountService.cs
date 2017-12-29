@@ -36,7 +36,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
 {
     [Description("MsSql UserAccount Backend")]
     [PluginName("UserAccounts")]
-    public sealed class MsSqlUserAccountService : UserAccountServiceInterface, IDBServiceInterface, IPlugin
+    public sealed class MsSqlUserAccountService : UserAccountServiceInterface, IDBServiceInterface, IPlugin, IUserAccountSerialNoInterface
     {
         private readonly string m_ConnectionString;
         private Uri m_HomeURI;
@@ -69,6 +69,33 @@ namespace SilverSim.Database.MsSql.UserAccounts
                 connection.Open();
                 connection.MigrateTables(Migrations, m_Log);
             }
+
+            ulong serno;
+            if (!TryGetSerialNumber(out serno))
+            {
+                using (var connection = new SqlConnection(m_ConnectionString))
+                {
+                    connection.Open();
+
+                    using (var cmd = new SqlCommand("SELECT COUNT(ID) FROM useraccounts", connection))
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (!reader.Read())
+                            {
+                                throw new ConfigurationLoader.ConfigurationErrorException("Failed to read number of accounts");
+                            }
+                            serno = (ulong)reader.GetInt32(0);
+                        }
+                    }
+
+                    var vals = new Dictionary<string, object>
+                    {
+                        { "SerialNumber", serno }
+                    };
+                    connection.InsertInto("useraccounts_serial", vals);
+                }
+            }
         }
 
         private static readonly IMigrationElement[] Migrations = new IMigrationElement[]
@@ -91,7 +118,10 @@ namespace SilverSim.Database.MsSql.UserAccounts
             new TableRevision(2),
             new ChangeColumn<uint>("UserFlags") { IsNullAllowed = false, Default = (uint)0 },
             new TableRevision(3),
-            new AddColumn<bool>("IsEverLoggedIn") {IsNullAllowed = false, Default = false }
+            new AddColumn<bool>("IsEverLoggedIn") { IsNullAllowed = false, Default = false },
+
+            new SqlTable("useraccounts_serial"),
+            new AddColumn<ulong>("SerialNumber") { IsNullAllowed = false, Default = (ulong)0 }
         };
 
         public override bool ContainsKey(UUID scopeID, UUID accountID)
@@ -414,7 +444,51 @@ namespace SilverSim.Database.MsSql.UserAccounts
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                connection.InsertInto("useraccounts", data);
+                connection.InsideTransaction((transaction) =>
+                {
+                    connection.InsertInto("useraccounts", data);
+                    using (var cmd = new SqlCommand("UPDATE useraccounts_serial SET SerialNumber = SerialNumber + 1", connection)
+                    {
+                        Transaction = transaction
+                    })
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                });
+            }
+        }
+
+        private bool TryGetSerialNumber(out ulong serialno)
+        {
+            using (var connection = new SqlConnection(m_ConnectionString))
+            {
+                connection.Open();
+                using (var cmd = new SqlCommand("SELECT SerialNumber FROM useraccounts_serial LIMIT 1", connection))
+                {
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            serialno = (ulong)(long)reader["SerialNumber"];
+                            return true;
+                        }
+                    }
+                }
+            }
+            serialno = 0;
+            return false;
+        }
+
+        public ulong SerialNumber
+        {
+            get
+            {
+                ulong serno;
+                if (!TryGetSerialNumber(out serno))
+                {
+                    throw new InvalidOperationException("Serial number access failed");
+                }
+                return serno;
             }
         }
 
@@ -460,6 +534,35 @@ namespace SilverSim.Database.MsSql.UserAccounts
             }
         }
 
+        public List<UUI> AccountList
+        {
+            get
+            {
+                var list = new List<UUI>();
+
+                using (var conn = new SqlConnection(m_ConnectionString))
+                {
+                    conn.Open();
+                    using (var cmd = new SqlCommand("SELECT ID, FirstName, LastName FROM useraccounts", conn))
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                list.Add(new UUI
+                                {
+                                    ID = reader.GetUUID("ID"),
+                                    FirstName = (string)reader["FirstName"],
+                                    LastName = (string)reader["LastName"]
+                                });
+                            }
+                        }
+                    }
+                }
+
+                return list;
+            }
+        }
         public override void SetEverLoggedIn(UUID scopeID, UUID accountID)
         {
             using (var connection = new SqlConnection(m_ConnectionString))
