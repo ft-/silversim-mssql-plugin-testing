@@ -463,7 +463,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT SerialNumber FROM useraccounts_serial LIMIT 1", connection))
+                using (var cmd = new SqlCommand("SELECT TOP 1 SerialNumber FROM useraccounts_serial", connection))
                 {
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
