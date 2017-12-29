@@ -446,7 +446,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
                 connection.Open();
                 connection.InsideTransaction((transaction) =>
                 {
-                    connection.InsertInto("useraccounts", data);
+                    connection.InsertInto("useraccounts", data, transaction);
                     using (var cmd = new SqlCommand("UPDATE useraccounts_serial SET SerialNumber = SerialNumber + 1", connection)
                     {
                         Transaction = transaction
