@@ -20,6 +20,7 @@
 // exception statement from your version.
 
 using SilverSim.Scene.Types.Object;
+using SilverSim.Scene.Types.Object.Parameters;
 using SilverSim.ServiceInterfaces.Purge;
 using SilverSim.Types;
 using SilverSim.Types.Primitive;
@@ -123,9 +124,9 @@ namespace SilverSim.Database.MsSql.SimulationData
                             var shape = new ObjectPart.PrimitiveShape { Serialization = dbReader.GetBytes("PrimitiveShapeData") };
                             var particleSystem = new ParticleSystem(dbReader.GetBytes("ParticleSystem"), 0);
                             var te = new TextureEntry(dbReader.GetBytes("TextureEntryBytes"));
-                            var proj = new ObjectPart.ProjectionParam { DbSerialization = dbReader.GetBytes("ProjectionData") };
-                            var sound = new ObjectPart.SoundParam { Serialization = dbReader.GetBytes("LoopedSoundData") };
-                            var colsound = new ObjectPart.CollisionSoundParam { Serialization = dbReader.GetBytes("ImpactSoundData") };
+                            var proj = new ProjectionParam { DbSerialization = dbReader.GetBytes("ProjectionData") };
+                            var sound = new SoundParam { Serialization = dbReader.GetBytes("LoopedSoundData") };
+                            var colsound = new CollisionSoundParam { Serialization = dbReader.GetBytes("ImpactSoundData") };
                             if (shape.SculptMap != UUID.Zero)
                             {
                                 action(shape.SculptMap);
