@@ -22,12 +22,8 @@
 using SilverSim.ServiceInterfaces.Profile;
 using SilverSim.Types;
 using SilverSim.Types.Profile;
-using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SilverSim.Database.MsSql.Profile
 {

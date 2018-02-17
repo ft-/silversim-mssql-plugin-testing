@@ -27,13 +27,9 @@ using SilverSim.ServiceInterfaces.Database;
 using SilverSim.ServiceInterfaces.Estate;
 using SilverSim.Types;
 using SilverSim.Types.Estate;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SilverSim.Database.MsSql.Estate
 {
