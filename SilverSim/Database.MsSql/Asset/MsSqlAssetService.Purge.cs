@@ -108,7 +108,7 @@ namespace SilverSim.Database.MsSql.Asset
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT id FROM assetrefs WHERE usesprocessed = 0", conn))
+                using (var cmd = new SqlCommand("SELECT TOP 1000 id FROM assetrefs WHERE usesprocessed = 0", conn))
                 {
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
                     {

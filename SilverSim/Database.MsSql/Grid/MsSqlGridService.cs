@@ -391,7 +391,7 @@ namespace SilverSim.Database.MsSql.Grid
 
                 if (!m_AllowDuplicateRegionNames)
                 {
-                    using (var cmd = new SqlCommand("SELECT uuid FROM [" + m_TableName + "] WHERE ScopeID = @scopeid AND regionName = @name LIMIT 1", conn))
+                    using (var cmd = new SqlCommand("SELECT TOP 1 uuid FROM [" + m_TableName + "] WHERE ScopeID = @scopeid AND regionName = @name", conn))
                     {
                         cmd.Parameters.AddParameter("@scopeid", regionInfo.ScopeID);
                         cmd.Parameters.AddParameter("@name", regionInfo.Name);
@@ -408,7 +408,7 @@ namespace SilverSim.Database.MsSql.Grid
 
                 if(keepOnlineUnmodified)
                 {
-                    using (var cmd = new SqlCommand("SELECT flags FROM [" + m_TableName + "] WHERE ScopeID = @scopeid AND uuid = @id LIMIT 1", conn))
+                    using (var cmd = new SqlCommand("SELECT TOP 1 flags FROM [" + m_TableName + "] WHERE ScopeID = @scopeid AND uuid = @id", conn))
                     {
                         cmd.Parameters.AddParameter("@scopeid", regionInfo.ScopeID);
                         cmd.Parameters.AddParameter("@id", regionInfo.ID);
