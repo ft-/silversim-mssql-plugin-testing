@@ -72,7 +72,7 @@ namespace SilverSim.Database.MsSql.Asset
             {
                 conn.Open();
                 bool updateRequired = false;
-                using (var cmd = new SqlCommand("SELECT id, access_time FROM assetrefs WHERE id = @id", conn))
+                using (var cmd = new SqlCommand("SELECT TOP 1 id, access_time FROM assetrefs WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddParameter("@id", key);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -181,7 +181,7 @@ namespace SilverSim.Database.MsSql.Asset
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM assetrefs INNER JOIN assetdata ON assetrefs.hash = assetdata.hash AND assetrefs.assetType = assetdata.assetType WHERE id = @id", conn))
+                using (var cmd = new SqlCommand("SELECT TOP 1 * FROM assetrefs INNER JOIN assetdata ON assetrefs.hash = assetdata.hash AND assetrefs.assetType = assetdata.assetType WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddParameter("@id", key);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -242,7 +242,7 @@ namespace SilverSim.Database.MsSql.Asset
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM assetrefs WHERE id=@id", conn))
+                using (var cmd = new SqlCommand("SELECT TOP 1 * FROM assetrefs WHERE id=@id", conn))
                 {
                     cmd.Parameters.AddParameter("@id", key);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -289,7 +289,7 @@ namespace SilverSim.Database.MsSql.Asset
             {
                 bool processed;
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT usesprocessed FROM assetrefs WHERE id = @id", conn))
+                using (var cmd = new SqlCommand("SELECT TOP 1 usesprocessed FROM assetrefs WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddParameter("@id", key);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -348,7 +348,7 @@ namespace SilverSim.Database.MsSql.Asset
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT data FROM assetrefs INNER JOIN assetdata ON assetrefs.hash = assetdata.hash AND assetrefs.assetType = assetdata.assetType WHERE id=@id", conn))
+                using (var cmd = new SqlCommand("SELECT TOP 1 data FROM assetrefs INNER JOIN assetdata ON assetrefs.hash = assetdata.hash AND assetrefs.assetType = assetdata.assetType WHERE id=@id", conn))
                 {
                     cmd.Parameters.AddParameter("@id", key);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -524,6 +524,10 @@ namespace SilverSim.Database.MsSql.Asset
             new AddColumn<bool>("usesprocessed") { IsNullAllowed = false, Default = false },
             new TableRevision(4),
             new DropColumn("CreatorID"),
+            new TableRevision(5),
+            new NamedKeyInfo("assetType_index", "assetType"),
+            new NamedKeyInfo("hash_index", "hash"),
+            new NamedKeyInfo("usesprocessed_index", "usesprocessed"),
 
             new SqlTable("assetsinuse"),
             new AddColumn<UUID>("id") { IsNullAllowed = false },
