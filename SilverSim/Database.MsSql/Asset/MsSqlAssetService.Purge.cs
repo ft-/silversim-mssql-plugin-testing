@@ -222,15 +222,10 @@ namespace SilverSim.Database.MsSql.Asset
             return new QueueStat(m_PurgeState, c, (uint)m_PurgedAssets);
         }
 
-        IList<QueueStatAccessor> IQueueStatsAccess.QueueStats
+        IList<QueueStatAccessor> IQueueStatsAccess.QueueStats => new List<QueueStatAccessor>
         {
-            get
-            {
-                var stats = new List<QueueStatAccessor>();
-                stats.Add(new QueueStatAccessor("AssetReferences", GetProcessorQueueStats));
-                stats.Add(new QueueStatAccessor("AssetPurges", GetPurgeQueueStats));
-                return stats;
-            }
-        }
+            new QueueStatAccessor("AssetReferences", GetProcessorQueueStats),
+            new QueueStatAccessor("AssetPurges", GetPurgeQueueStats)
+        };
     }
 }
