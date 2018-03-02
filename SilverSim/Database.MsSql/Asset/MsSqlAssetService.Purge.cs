@@ -49,26 +49,56 @@ namespace SilverSim.Database.MsSql.Asset
             }
         }
 
+        private int m_ProcessingPurge;
+        private string m_PurgeState = "IDLE";
+
         public long PurgeUnusedAssets()
         {
             long purged;
-            using (var conn = new SqlConnection(m_ConnectionString))
+            try
             {
-                conn.Open();
-                using (var cmd = new SqlCommand("DELETE FROM assetrefs WHERE usesprocessed = 1 AND access_time < @access_time AND NOT EXISTS (SELECT NULL FROM assetsinuse WHERE usesid = assetrefs.id)", conn))
+                using (var conn = new SqlConnection(m_ConnectionString))
                 {
-                    ulong now = Date.GetUnixTime() - 2 * 24 * 3600;
-                    cmd.Parameters.AddParameter("@access_time", now);
-                    purged = cmd.ExecuteNonQuery();
+                    conn.Open();
+                    m_PurgeState = "PURGE_REFS";
+                    using (var cmd = new SqlCommand("DELETE FROM assetrefs WHERE usesprocessed = 1 AND access_time < @access_time AND NOT EXISTS (SELECT TOP(1) NULL FROM assetsinuse WHERE usesid = assetrefs.id)", conn))
+                    {
+                        ulong now = Date.GetUnixTime() - 2 * 24 * 3600;
+                        cmd.Parameters.AddParameter("@access_time", now);
+                        purged = cmd.ExecuteNonQuery();
+                    }
+                    m_PurgeState = "PURGE_USES";
+                    int removed = 1000;
+                    int execres;
+                    do
+                    {
+                        m_ProcessingPurge = removed;
+                        using (var cmd = new SqlCommand("DELETE TOP(1) FROM assetsinuse WHERE NOT EXISTS (SELECT TOP(1) NULL FROM assetrefs WHERE assetsinuse.id = assetrefs.id)", conn))
+                        {
+                            execres = cmd.ExecuteNonQuery();
+                        }
+                        removed -= execres;
+                        Interlocked.Add(ref m_PurgedAssets, execres);
+                    } while (removed > 0 && execres > 0);
+
+                    m_PurgeState = "PURGE_DATA";
+                    removed = 1000;
+                    do
+                    {
+                        m_ProcessingPurge = removed;
+                        using (var cmd = new SqlCommand("DELETE TOP(1) FROM assetdata WHERE NOT EXISTS (SELECT TOP(1) NULL FROM assetrefs WHERE assetdata.hash = assetrefs.hash AND assetdata.assetType = assetrefs.assetType)", conn))
+                        {
+                            execres = cmd.ExecuteNonQuery();
+                        }
+                        removed -= execres;
+                        Interlocked.Add(ref m_PurgedAssets, execres);
+                    } while (removed > 0 && execres > 0);
                 }
-                using (var cmd = new SqlCommand("DELETE FROM assetsinuse WHERE NOT EXISTS (SELECT NULL FROM assetrefs WHERE assetsinuse.id = assetrefs.id)", conn))
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                using (var cmd = new SqlCommand("DELETE FROM assetdata WHERE NOT EXISTS (SELECT NULL FROM assetrefs WHERE assetdata.hash = assetrefs.hash AND assetdata.assetType = assetrefs.assetType)", conn))
-                {
-                    cmd.ExecuteNonQuery();
-                }
+            }
+            finally
+            {
+                m_PurgeState = "IDLE";
+                m_ProcessingPurge = 0;
             }
 
             return purged;
@@ -108,7 +138,7 @@ namespace SilverSim.Database.MsSql.Asset
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT TOP 1000 id FROM assetrefs WHERE usesprocessed = 0", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1000) id FROM assetrefs WHERE usesprocessed = 0", conn))
                 {
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
                     {
@@ -125,6 +155,7 @@ namespace SilverSim.Database.MsSql.Asset
         private readonly BlockingQueue<UUID> m_AssetProcessQueue = new BlockingQueue<UUID>();
         private int m_ActiveAssetProcessors;
         private int m_Processed;
+        private int m_PurgedAssets;
 
         public void EnqueueAsset(UUID assetid)
         {
@@ -185,12 +216,19 @@ namespace SilverSim.Database.MsSql.Asset
             return new QueueStat(c != 0 ? "PROCESSING" : "IDLE", c, (uint)m_Processed);
         }
 
+        private QueueStat GetPurgeQueueStats()
+        {
+            int c = m_ProcessingPurge;
+            return new QueueStat(m_PurgeState, c, (uint)m_PurgedAssets);
+        }
+
         IList<QueueStatAccessor> IQueueStatsAccess.QueueStats
         {
             get
             {
                 var stats = new List<QueueStatAccessor>();
                 stats.Add(new QueueStatAccessor("AssetReferences", GetProcessorQueueStats));
+                stats.Add(new QueueStatAccessor("AssetPurges", GetPurgeQueueStats));
                 return stats;
             }
         }

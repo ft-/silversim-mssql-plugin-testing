@@ -153,8 +153,8 @@ namespace SilverSim.Database.MsSql.Presence
                 {
                     conn.Open();
                     using (var cmd = new SqlCommand(isUserIdSet ?
-                        "SELECT * FROM presence WHERE SessionID = @sessionID AND UserID = @userid" :
-                        "SELECT * FROM presence WHERE SessionID = @sessionID", conn))
+                        "SELECT TOP(1) * FROM presence WHERE SessionID = @sessionID AND UserID = @userid" :
+                        "SELECT TOP(1) * FROM presence WHERE SessionID = @sessionID", conn))
                     {
                         cmd.Parameters.AddParameter("@sessionID", sessionID);
                         if(isUserIdSet)

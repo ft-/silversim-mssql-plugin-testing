@@ -122,7 +122,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT InviteID from groupinvites WHERE InviteID = @inviteid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) InviteID from groupinvites WHERE InviteID = @inviteid", conn))
                 {
                     cmd.Parameters.AddParameter("@inviteid", groupInviteID);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -175,7 +175,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * from groupinvites WHERE InviteID = @inviteid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * from groupinvites WHERE InviteID = @inviteid", conn))
                 {
                     cmd.Parameters.AddParameter("@inviteid", groupInviteID);
                     using (SqlDataReader reader = cmd.ExecuteReader())

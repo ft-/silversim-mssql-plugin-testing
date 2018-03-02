@@ -35,7 +35,7 @@ namespace SilverSim.Database.MsSql.Inventory
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT ID FROM " + m_InventoryItemTable + " WHERE ID = @itemid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) ID FROM " + m_InventoryItemTable + " WHERE ID = @itemid", connection))
                 {
                     cmd.Parameters.AddParameter("@itemid", key);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -56,7 +56,7 @@ namespace SilverSim.Database.MsSql.Inventory
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM " + m_InventoryItemTable + " WHERE ID = @itemid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM " + m_InventoryItemTable + " WHERE ID = @itemid", connection))
                 {
                     cmd.Parameters.AddParameter("@itemid", key);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -127,7 +127,7 @@ namespace SilverSim.Database.MsSql.Inventory
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT NULL FROM " + m_InventoryItemTable + " WHERE OwnerID = @ownerid AND ID = @itemid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) NULL FROM " + m_InventoryItemTable + " WHERE OwnerID = @ownerid AND ID = @itemid", connection))
                 {
                     cmd.Parameters.AddParameter("@ownerid", principalID);
                     cmd.Parameters.AddParameter("@itemid", key);
@@ -149,7 +149,7 @@ namespace SilverSim.Database.MsSql.Inventory
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM " + m_InventoryItemTable + " WHERE OwnerID = @ownerid AND ID = @itemid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM " + m_InventoryItemTable + " WHERE OwnerID = @ownerid AND ID = @itemid", connection))
                 {
                     cmd.Parameters.AddParameter("@ownerid", principalID);
                     cmd.Parameters.AddParameter("@itemid", key);
@@ -274,7 +274,7 @@ namespace SilverSim.Database.MsSql.Inventory
                         throw new InvalidParentFolderIdException(string.Format("Invalid parent folder {0} for item {1}", toFolderID, id));
                     }
 
-                    using (var cmd = new SqlCommand("SELECT NULL FROM " + m_InventoryFolderTable + " WHERE ID = @folderid AND OwnerID = @ownerid", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) NULL FROM " + m_InventoryFolderTable + " WHERE ID = @folderid AND OwnerID = @ownerid", connection))
                     {
                         cmd.Transaction = transaction;
                         cmd.Parameters.AddParameter("@folderid", toFolderID);

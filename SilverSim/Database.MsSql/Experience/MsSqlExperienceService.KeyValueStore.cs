@@ -123,7 +123,7 @@ namespace SilverSim.Database.MsSql.Experience
                 conn.Open();
                 return conn.InsideTransaction<bool>((transaction) =>
                 {
-                    using (var cmd = new SqlCommand("SELECT [Value] FROM experiencekeyvalues WHERE ExperienceID = @experienceid AND [Key] = @key", conn))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) [Value] FROM experiencekeyvalues WHERE ExperienceID = @experienceid AND [Key] = @key", conn))
                     {
                         cmd.Transaction = transaction;
                         cmd.Parameters.AddParameter("@experienceid", experienceID);
@@ -155,7 +155,7 @@ namespace SilverSim.Database.MsSql.Experience
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT [Value] FROM experiencekeyvalues WHERE ExperienceID = @experienceid AND [Key] = @key", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) [Value] FROM experiencekeyvalues WHERE ExperienceID = @experienceid AND [Key] = @key", conn))
                 {
                     cmd.Parameters.AddParameter("@experienceid", experienceID);
                     cmd.Parameters.AddParameter("@key", key);

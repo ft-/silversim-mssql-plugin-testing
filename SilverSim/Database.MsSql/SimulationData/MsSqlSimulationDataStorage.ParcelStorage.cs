@@ -40,7 +40,7 @@ namespace SilverSim.Database.MsSql.SimulationData
                 using (var connection = new SqlConnection(m_ConnectionString))
                 {
                     connection.Open();
-                    using (var cmd = new SqlCommand("SELECT * FROM parcels WHERE RegionID = @regionid AND ParcelID = @parcelid", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM parcels WHERE RegionID = @regionid AND ParcelID = @parcelid", connection))
                     {
                         cmd.Parameters.AddParameter("@regionid", regionID);
                         cmd.Parameters.AddParameter("@parcelid", parcelID);

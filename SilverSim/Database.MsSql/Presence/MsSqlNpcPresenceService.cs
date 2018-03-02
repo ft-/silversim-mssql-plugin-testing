@@ -169,7 +169,7 @@ namespace SilverSim.Database.MsSql.Presence
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM npcpresence WHERE RegionID = @regionID AND FirstName = @first AND LastName = @last", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM npcpresence WHERE RegionID = @regionID AND FirstName = @first AND LastName = @last", conn))
                 {
                     cmd.Parameters.AddParameter("@regionID", regionID);
                     cmd.Parameters.AddParameter("@first", firstname);
@@ -193,7 +193,7 @@ namespace SilverSim.Database.MsSql.Presence
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM npcpresence WHERE NpcID = @npcid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM npcpresence WHERE NpcID = @npcid", conn))
                 {
                     cmd.Parameters.AddParameter("@npcid", npcid);
                     using (SqlDataReader reader = cmd.ExecuteReader())

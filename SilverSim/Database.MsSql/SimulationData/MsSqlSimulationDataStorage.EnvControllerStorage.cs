@@ -33,7 +33,7 @@ namespace SilverSim.Database.MsSql.SimulationData
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT SerializedData FROM environmentcontroller WHERE RegionID = @regionid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) SerializedData FROM environmentcontroller WHERE RegionID = @regionid", conn))
                 {
                     cmd.Parameters.AddParameter("@regionid", regionID);
                     using (SqlDataReader reader = cmd.ExecuteReader())

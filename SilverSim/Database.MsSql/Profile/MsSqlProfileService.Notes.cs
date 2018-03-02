@@ -33,7 +33,7 @@ namespace SilverSim.Database.MsSql.Profile
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT useruuid FROM usernotes WHERE useruuid = @user AND targetuuid = @target", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) useruuid FROM usernotes WHERE useruuid = @user AND targetuuid = @target", conn))
                 {
                     cmd.Parameters.AddParameter("@user", user.ID);
                     cmd.Parameters.AddParameter("@target", target.ID);
@@ -55,7 +55,7 @@ namespace SilverSim.Database.MsSql.Profile
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT notes FROM usernotes WHERE useruuid = @user AND targetuuid = @target", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) notes FROM usernotes WHERE useruuid = @user AND targetuuid = @target", conn))
                 {
                     cmd.Parameters.AddParameter("@user", user.ID);
                     cmd.Parameters.AddParameter("@target", target.ID);

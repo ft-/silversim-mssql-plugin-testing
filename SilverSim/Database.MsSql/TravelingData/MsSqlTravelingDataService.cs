@@ -69,7 +69,7 @@ namespace SilverSim.Database.MsSql.TravelingData
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM travelingdata WHERE UserID = @id AND (NOT GridExternalName = @homeuri) LIMIT 1", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM travelingdata WHERE UserID = @id AND (NOT GridExternalName = @homeuri) LIMIT 1", connection))
                 {
                     cmd.Parameters.AddParameter("@id", agentID);
                     cmd.Parameters.AddParameter("@homeuri", homeURI);
@@ -90,7 +90,7 @@ namespace SilverSim.Database.MsSql.TravelingData
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM travelingdata WHERE SessionID = @id", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM travelingdata WHERE SessionID = @id", connection))
                 {
                     cmd.Parameters.AddParameter("@id", sessionID);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -110,7 +110,7 @@ namespace SilverSim.Database.MsSql.TravelingData
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM travelingdata WHERE UserID = @id AND ClientIPAddress = @ip", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM travelingdata WHERE UserID = @id AND ClientIPAddress = @ip", connection))
                 {
                     cmd.Parameters.AddParameter("@id", agentID);
                     cmd.Parameters.AddParameter("@ip", ipAddress);
@@ -155,7 +155,7 @@ namespace SilverSim.Database.MsSql.TravelingData
                 connection.Open();
                 bool res = connection.InsideTransaction((transaction) =>
                 {
-                    using (var cmd = new SqlCommand("SELECT * FROM travelingdata WHERE SessionID = @id", connection)
+                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM travelingdata WHERE SessionID = @id", connection)
                     {
                         Transaction = transaction
                     })
@@ -204,7 +204,7 @@ namespace SilverSim.Database.MsSql.TravelingData
                 connection.Open();
                 bool res = connection.InsideTransaction((transaction) =>
                 {
-                    using (var cmd = new SqlCommand("SELECT * FROM travelingdata WHERE UserID = @id", connection)
+                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM travelingdata WHERE UserID = @id", connection)
                     {
                         Transaction = transaction
                     })

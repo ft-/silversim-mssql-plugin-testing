@@ -36,7 +36,7 @@ namespace SilverSim.Database.MsSql.Inventory
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM " + m_InventoryFolderTable + " WHERE ID = @folderid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM " + m_InventoryFolderTable + " WHERE ID = @folderid", connection))
                 {
                     cmd.Parameters.AddParameter("@folderid", key);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -59,7 +59,7 @@ namespace SilverSim.Database.MsSql.Inventory
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT NULL FROM " + m_InventoryFolderTable + " WHERE ID = @folderid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) NULL FROM " + m_InventoryFolderTable + " WHERE ID = @folderid", connection))
                 {
                     cmd.Parameters.AddParameter("@folderid", key);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -93,7 +93,7 @@ namespace SilverSim.Database.MsSql.Inventory
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM " + m_InventoryFolderTable + " WHERE OwnerID = @ownerid AND ID = @folderid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM " + m_InventoryFolderTable + " WHERE OwnerID = @ownerid AND ID = @folderid", connection))
                 {
                     cmd.Parameters.AddParameter("@ownerid", principalID);
                     cmd.Parameters.AddParameter("@folderid", key);
@@ -117,7 +117,7 @@ namespace SilverSim.Database.MsSql.Inventory
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT NULL FROM " + m_InventoryFolderTable + " WHERE OwnerID = @ownerid AND ID = @folderid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) NULL FROM " + m_InventoryFolderTable + " WHERE OwnerID = @ownerid AND ID = @folderid", connection))
                 {
                     cmd.Parameters.AddParameter("@ownerid", principalID);
                     cmd.Parameters.AddParameter("@folderid", key);
@@ -154,7 +154,7 @@ namespace SilverSim.Database.MsSql.Inventory
                 connection.Open();
                 if (type == AssetType.RootFolder)
                 {
-                    using (var cmd = new SqlCommand("SELECT NULL FROM " + m_InventoryFolderTable + " WHERE OwnerID = @ownerid AND ParentFolderID = @parentfolderid", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) NULL FROM " + m_InventoryFolderTable + " WHERE OwnerID = @ownerid AND ParentFolderID = @parentfolderid", connection))
                     {
                         cmd.Parameters.AddParameter("@ownerid", principalID);
                         cmd.Parameters.AddParameter("@parentfolderid", UUID.Zero);
@@ -169,8 +169,8 @@ namespace SilverSim.Database.MsSql.Inventory
                 }
                 else
                 {
-                    using (var cmd = new SqlCommand("SELECT ID FROM " + m_InventoryFolderTable + " AS A WHERE OwnerID = @ownerid AND DefaultType = @type AND " +
-                            "EXISTS (SELECT 1 FROM " + m_InventoryFolderTable + " AS B WHERE B.ParentFolderID = @rootparent AND B.ID = A.ParentFolderID)", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) ID FROM " + m_InventoryFolderTable + " AS A WHERE OwnerID = @ownerid AND DefaultType = @type AND " +
+                            "EXISTS (SELECT TOP(1) NULL FROM " + m_InventoryFolderTable + " AS B WHERE B.ParentFolderID = @rootparent AND B.ID = A.ParentFolderID)", connection))
                     {
                         cmd.Parameters.AddParameter("@ownerid", principalID);
                         cmd.Parameters.AddParameter("@type", type);
@@ -196,7 +196,7 @@ namespace SilverSim.Database.MsSql.Inventory
                 connection.Open();
                 if (type == AssetType.RootFolder)
                 {
-                    using (var cmd = new SqlCommand("SELECT * FROM " + m_InventoryFolderTable + " WHERE OwnerID = @ownerid AND ParentFolderID = @parentfolderid", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM " + m_InventoryFolderTable + " WHERE OwnerID = @ownerid AND ParentFolderID = @parentfolderid", connection))
                     {
                         cmd.Parameters.AddParameter("@ownerid", principalID);
                         cmd.Parameters.AddParameter("@parentfolderid", UUID.Zero);
@@ -212,8 +212,8 @@ namespace SilverSim.Database.MsSql.Inventory
                 }
                 else
                 {
-                    using (var cmd = new SqlCommand("SELECT * FROM " + m_InventoryFolderTable + " AS A WHERE OwnerID = @ownerid AND DefaultType = @type AND " +
-                            "EXISTS (SELECT 1 FROM " + m_InventoryFolderTable + " AS B WHERE B.ParentFolderID = @rootparent AND B.ID = A.ParentFolderID)", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM " + m_InventoryFolderTable + " AS A WHERE OwnerID = @ownerid AND DefaultType = @type AND " +
+                            "EXISTS (SELECT TOP(1) NULL FROM " + m_InventoryFolderTable + " AS B WHERE B.ParentFolderID = @rootparent AND B.ID = A.ParentFolderID)", connection))
                     {
                         cmd.Parameters.AddParameter("@ownerid", principalID);
                         cmd.Parameters.AddParameter("@type", type);
@@ -377,7 +377,7 @@ namespace SilverSim.Database.MsSql.Inventory
                     }
 
 
-                    using (var cmd = new SqlCommand("SELECT NULL FROM " + m_InventoryFolderTable + " WHERE ID = @folderid AND OwnerID = @ownerid", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) NULL FROM " + m_InventoryFolderTable + " WHERE ID = @folderid AND OwnerID = @ownerid", connection))
                     {
                         cmd.Transaction = transaction;
                         cmd.Parameters.AddParameter("@folderid", toFolderID);

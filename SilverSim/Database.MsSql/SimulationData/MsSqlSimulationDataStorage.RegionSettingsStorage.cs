@@ -139,7 +139,7 @@ namespace SilverSim.Database.MsSql.SimulationData
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM regionsettings WHERE RegionID = @regionid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM regionsettings WHERE RegionID = @regionid", conn))
                 {
                     cmd.Parameters.AddParameter("@regionid", regionID);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -161,7 +161,7 @@ namespace SilverSim.Database.MsSql.SimulationData
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT NULL FROM regionsettings WHERE RegionID = @regionid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) NULL FROM regionsettings WHERE RegionID = @regionid", conn))
                 {
                     cmd.Parameters.AddParameter("@regionid", regionID);
                     using (SqlDataReader reader = cmd.ExecuteReader())

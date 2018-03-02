@@ -173,7 +173,7 @@ namespace SilverSim.Database.MsSql.Estate
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM estates WHERE ID = @id", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM estates WHERE ID = @id", conn))
                 {
                     cmd.Parameters.AddParameter("@id", estateID);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -195,7 +195,7 @@ namespace SilverSim.Database.MsSql.Estate
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM estates WHERE Name = @name", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM estates WHERE Name = @name", conn))
                 {
                     cmd.Parameters.AddParameter("@name", estateName);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -217,7 +217,7 @@ namespace SilverSim.Database.MsSql.Estate
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT id FROM estates WHERE ID = @id", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) id FROM estates WHERE ID = @id", conn))
                 {
                     cmd.Parameters.AddParameter("@id", estateID);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -238,7 +238,7 @@ namespace SilverSim.Database.MsSql.Estate
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT id FROM estates WHERE Name = @name", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) id FROM estates WHERE Name = @name", conn))
                 {
                     cmd.Parameters.AddParameter("@name", estateName);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -340,7 +340,7 @@ namespace SilverSim.Database.MsSql.Estate
                 using (var conn = new SqlConnection(m_ConnectionString))
                 {
                     conn.Open();
-                    using (var cmd = new SqlCommand("SELECT * FROM estates WHERE ID = @id", conn))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM estates WHERE ID = @id", conn))
                     {
                         cmd.Parameters.AddParameter("@id", estateID);
                         using (SqlDataReader reader = cmd.ExecuteReader())

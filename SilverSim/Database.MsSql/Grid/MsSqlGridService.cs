@@ -121,7 +121,7 @@ namespace SilverSim.Database.MsSql.Grid
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM [" + m_TableName + "] WHERE uuid = @id AND ScopeID = @scopeid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM [" + m_TableName + "] WHERE uuid = @id AND ScopeID = @scopeid", connection))
                 {
                     cmd.Parameters.AddParameter("@id", regionID);
                     cmd.Parameters.AddParameter("@scopeid", scopeID);
@@ -145,7 +145,7 @@ namespace SilverSim.Database.MsSql.Grid
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM [" + m_TableName + "] WHERE uuid = @id AND ScopeID = @scopeid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM [" + m_TableName + "] WHERE uuid = @id AND ScopeID = @scopeid", connection))
                 {
                     cmd.Parameters.AddParameter("@id", regionID);
                     cmd.Parameters.AddParameter("@scopeid", scopeID);
@@ -175,7 +175,7 @@ namespace SilverSim.Database.MsSql.Grid
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM [" + m_TableName + "] WHERE locX <= @x AND locY <= @y AND locX + sizeX > @x AND locY + sizeY > @y AND ScopeID = @scopeid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM [" + m_TableName + "] WHERE locX <= @x AND locY <= @y AND locX + sizeX > @x AND locY + sizeY > @y AND ScopeID = @scopeid", connection))
                 {
                     cmd.Parameters.AddParameter("@x", gridX);
                     cmd.Parameters.AddParameter("@y", gridY);
@@ -200,7 +200,7 @@ namespace SilverSim.Database.MsSql.Grid
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM [" + m_TableName + "] WHERE locX <= @x AND locY <= @y AND locX + sizeX > @x AND locY + sizeY > @y AND ScopeID = @scopeid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM [" + m_TableName + "] WHERE locX <= @x AND locY <= @y AND locX + sizeX > @x AND locY + sizeY > @y AND ScopeID = @scopeid", connection))
                 {
                     cmd.Parameters.AddParameter("@x", gridX);
                     cmd.Parameters.AddParameter("@y", gridY);
@@ -231,7 +231,7 @@ namespace SilverSim.Database.MsSql.Grid
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM [" + m_TableName + "] WHERE regionName = @name AND ScopeID = @scopeid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM [" + m_TableName + "] WHERE regionName = @name AND ScopeID = @scopeid", connection))
                 {
                     cmd.Parameters.AddParameter("@name", regionName);
                     cmd.Parameters.AddParameter("@scopeid", scopeID);
@@ -255,7 +255,7 @@ namespace SilverSim.Database.MsSql.Grid
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM [" + m_TableName + "] WHERE regionName = @name AND ScopeID = @scopeid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM [" + m_TableName + "] WHERE regionName = @name AND ScopeID = @scopeid", connection))
                 {
                     cmd.Parameters.AddParameter("@name", regionName);
                     cmd.Parameters.AddParameter("@scopeid", scopeID);
@@ -285,7 +285,7 @@ namespace SilverSim.Database.MsSql.Grid
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM [" + m_TableName + "] WHERE uuid = @id", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM [" + m_TableName + "] WHERE uuid = @id", connection))
                 {
                     cmd.Parameters.AddParameter("@id", regionID);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -308,7 +308,7 @@ namespace SilverSim.Database.MsSql.Grid
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM [" + m_TableName + "] WHERE uuid = @id", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM [" + m_TableName + "] WHERE uuid = @id", connection))
                 {
                     cmd.Parameters.AddParameter("@id", regionID);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -391,7 +391,7 @@ namespace SilverSim.Database.MsSql.Grid
 
                 if (!m_AllowDuplicateRegionNames)
                 {
-                    using (var cmd = new SqlCommand("SELECT TOP 1 uuid FROM [" + m_TableName + "] WHERE ScopeID = @scopeid AND regionName = @name", conn))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) uuid FROM [" + m_TableName + "] WHERE ScopeID = @scopeid AND regionName = @name", conn))
                     {
                         cmd.Parameters.AddParameter("@scopeid", regionInfo.ScopeID);
                         cmd.Parameters.AddParameter("@name", regionInfo.Name);
@@ -408,7 +408,7 @@ namespace SilverSim.Database.MsSql.Grid
 
                 if(keepOnlineUnmodified)
                 {
-                    using (var cmd = new SqlCommand("SELECT TOP 1 flags FROM [" + m_TableName + "] WHERE ScopeID = @scopeid AND uuid = @id", conn))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) flags FROM [" + m_TableName + "] WHERE ScopeID = @scopeid AND uuid = @id", conn))
                     {
                         cmd.Parameters.AddParameter("@scopeid", regionInfo.ScopeID);
                         cmd.Parameters.AddParameter("@id", regionInfo.ID);
@@ -425,11 +425,11 @@ namespace SilverSim.Database.MsSql.Grid
                 }
 
                 /* we have to give checks for all intersection variants */
-                using (var cmd = new SqlCommand("SELECT uuid FROM [" + m_TableName + "] WHERE (" +
+                using (var cmd = new SqlCommand("SELECT TOP(1) uuid FROM [" + m_TableName + "] WHERE (" +
                             "(locX >= @minx AND locY >= @miny AND locX < @maxx AND locY < @maxy) OR " +
                             "(locX + sizeX > @minx AND locY+sizeY > @miny AND locX + sizeX < @maxx AND locY + sizeY < @maxy)" +
                             ") AND (NOT uuid = @regionid) AND " +
-                            "ScopeID = @scopeid LIMIT 1", conn))
+                            "ScopeID = @scopeid", conn))
                 {
                     cmd.Parameters.AddParameter("@min", regionInfo.Location);
                     cmd.Parameters.AddParameter("@max", regionInfo.Location + regionInfo.Size);

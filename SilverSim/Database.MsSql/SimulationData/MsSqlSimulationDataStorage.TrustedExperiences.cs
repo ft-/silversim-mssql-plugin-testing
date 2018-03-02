@@ -61,7 +61,7 @@ namespace SilverSim.Database.MsSql.SimulationData
                 using (var conn = new SqlConnection(m_ConnectionString))
                 {
                     conn.Open();
-                    using (var cmd = new SqlCommand("SELECT NULL FROM regiontrustedexperiences WHERE RegionID = @regionid AND ExperienceID = @experienceid", conn))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) NULL FROM regiontrustedexperiences WHERE RegionID = @regionid AND ExperienceID = @experienceid", conn))
                     {
                         cmd.Parameters.AddParameter("@regionid", regionID);
                         cmd.Parameters.AddParameter("@experienceid", experienceID);
@@ -129,7 +129,7 @@ namespace SilverSim.Database.MsSql.SimulationData
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT NULL FROM regiontrustedexperiences WHERE RegionID = @regionid AND ExperienceID = @experienceid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) NULL FROM regiontrustedexperiences WHERE RegionID = @regionid AND ExperienceID = @experienceid", conn))
                 {
                     cmd.Parameters.AddParameter("@regionid", regionID);
                     cmd.Parameters.AddParameter("@experienceid", experienceID);

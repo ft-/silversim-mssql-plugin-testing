@@ -102,7 +102,7 @@ namespace SilverSim.Database.MsSql.Estate
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT NULL FROM estatetrustedexperiences WHERE EstateID = @estateid AND ExperienceID = @experienceid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) NULL FROM estatetrustedexperiences WHERE EstateID = @estateid AND ExperienceID = @experienceid", conn))
                 {
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {

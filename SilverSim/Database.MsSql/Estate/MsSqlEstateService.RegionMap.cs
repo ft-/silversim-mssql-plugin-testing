@@ -57,7 +57,7 @@ namespace SilverSim.Database.MsSql.Estate
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT EstateID FROM estate_regionmap WHERE RegionID = @regionid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) EstateID FROM estate_regionmap WHERE RegionID = @regionid", conn))
                 {
                     cmd.Parameters.AddParameter("@regionid", regionID);
                     using (SqlDataReader reader = cmd.ExecuteReader())

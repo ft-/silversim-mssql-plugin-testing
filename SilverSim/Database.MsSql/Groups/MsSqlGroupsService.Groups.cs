@@ -74,7 +74,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT GroupID FROM groups WHERE [Name] = @groupname", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) GroupID FROM groups WHERE [Name] = @groupname", conn))
                 {
                     cmd.Parameters.AddParameter("@groupname", groupName);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -92,7 +92,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT GroupID FROM groups WHERE GroupID = @groupid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) GroupID FROM groups WHERE GroupID = @groupid", conn))
                 {
                     cmd.Parameters.AddParameter("@groupid", groupID);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -191,7 +191,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT g.*, " + GCountQuery + " FROM groups AS g WHERE g.Name = @groupname", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) g.*, " + GCountQuery + " FROM groups AS g WHERE g.Name = @groupname", conn))
                 {
                     cmd.Parameters.AddParameter("@groupname", groupName);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -214,7 +214,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT g.*, " + GCountQuery + " FROM groups AS g WHERE g.GroupID = @groupid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) g.*, " + GCountQuery + " FROM groups AS g WHERE g.GroupID = @groupid", conn))
                 {
                     cmd.Parameters.AddParameter("@groupid", group.ID);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -237,7 +237,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT [Name], Location FROM groups WHERE GroupID = @groupid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) [Name], Location FROM groups WHERE GroupID = @groupid", conn))
                 {
                     cmd.Parameters.AddParameter("@groupid", groupID);
                     using (SqlDataReader reader = cmd.ExecuteReader())

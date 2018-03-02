@@ -36,7 +36,7 @@ namespace SilverSim.Database.MsSql.Profile
                 using (var conn = new SqlConnection(m_ConnectionString))
                 {
                     conn.Open();
-                    using (var cmd = new SqlCommand("SELECT * FROM userprofile where useruuid = @uuid", conn))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM userprofile where useruuid = @uuid", conn))
                     {
                         cmd.Parameters.AddParameter("@uuid", user.ID);
                         using (SqlDataReader reader = cmd.ExecuteReader())

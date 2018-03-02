@@ -34,7 +34,7 @@ namespace SilverSim.Database.MsSql.SimulationData
             {
                 connection.Open();
 
-                using (var cmd = new SqlCommand("SELECT ScriptState FROM scriptstates WHERE RegionID = @regionid AND PrimID = @primid AND ItemID = @itemid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) ScriptState FROM scriptstates WHERE RegionID = @regionid AND PrimID = @primid AND ItemID = @itemid", connection))
                 {
                     cmd.Parameters.AddParameter("@regionid", regionID);
                     cmd.Parameters.AddParameter("@primid", primID);

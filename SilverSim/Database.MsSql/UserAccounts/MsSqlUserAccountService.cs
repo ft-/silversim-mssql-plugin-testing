@@ -131,7 +131,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
                 connection.Open();
                 if (scopeID != UUID.Zero)
                 {
-                    using (var cmd = new SqlCommand("SELECT ID FROM useraccounts WHERE ScopeID = @scopeid AND ID = @id", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) ID FROM useraccounts WHERE ScopeID = @scopeid AND ID = @id", connection))
                     {
                         cmd.Parameters.AddParameter("@scopeid", scopeID);
                         cmd.Parameters.AddParameter("@id", accountID);
@@ -146,7 +146,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
                 }
                 else
                 {
-                    using (var cmd = new SqlCommand("SELECT ID FROM useraccounts WHERE ID = @id", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) ID FROM useraccounts WHERE ID = @id", connection))
                     {
                         cmd.Parameters.AddParameter("@id", accountID);
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -170,7 +170,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
                 connection.Open();
                 if (scopeID != UUID.Zero)
                 {
-                    using (var cmd = new SqlCommand("SELECT * FROM useraccounts WHERE ScopeID = @scopeid AND ID = @id", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM useraccounts WHERE ScopeID = @scopeid AND ID = @id", connection))
                     {
                         cmd.Parameters.AddParameter("@scopeid", scopeID);
                         cmd.Parameters.AddParameter("@id", accountID);
@@ -186,7 +186,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
                 }
                 else
                 {
-                    using (var cmd = new SqlCommand("SELECT * FROM useraccounts WHERE ID = @id", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM useraccounts WHERE ID = @id", connection))
                     {
                         cmd.Parameters.AddParameter("@id", accountID);
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -223,7 +223,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT ScopeID FROM useraccounts WHERE ScopeID = @scopeid AND Email = @email", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) ScopeID FROM useraccounts WHERE ScopeID = @scopeid AND Email = @email", connection))
                 {
                     cmd.Parameters.AddParameter("@scopeid", scopeID);
                     cmd.Parameters.AddParameter("@email", email);
@@ -245,7 +245,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM useraccounts WHERE ScopeID = @scopeid AND Email = @email", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM useraccounts WHERE ScopeID = @scopeid AND Email = @email", connection))
                 {
                     cmd.Parameters.AddParameter("@scopeid", scopeID);
                     cmd.Parameters.AddParameter("@email", email);
@@ -284,7 +284,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
                 connection.Open();
                 if (scopeID != UUID.Zero)
                 {
-                    using (var cmd = new SqlCommand("SELECT ScopeID FROM useraccounts WHERE ScopeID = @scopeid AND FirstName = @firstname AND LastName = @lastname", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) ScopeID FROM useraccounts WHERE ScopeID = @scopeid AND FirstName = @firstname AND LastName = @lastname", connection))
                     {
                         cmd.Parameters.AddParameter("@scopeid", scopeID);
                         cmd.Parameters.AddParameter("@firstname", firstName);
@@ -300,7 +300,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
                 }
                 else
                 {
-                    using (var cmd = new SqlCommand("SELECT ScopeID FROM useraccounts WHERE FirstName = @firstname AND LastName = @lastname", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) ScopeID FROM useraccounts WHERE FirstName = @firstname AND LastName = @lastname", connection))
                     {
                         cmd.Parameters.AddParameter("@firstname", firstName);
                         cmd.Parameters.AddParameter("@lastname", lastName);
@@ -325,7 +325,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
                 connection.Open();
                 if (scopeID != UUID.Zero)
                 {
-                    using (var cmd = new SqlCommand("SELECT * FROM useraccounts WHERE ScopeID = @scopeid AND FirstName = @firstname AND LastName = @lastname", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM useraccounts WHERE ScopeID = @scopeid AND FirstName = @firstname AND LastName = @lastname", connection))
                     {
                         cmd.Parameters.AddParameter("@scopeid", scopeID);
                         cmd.Parameters.AddParameter("@firstname", firstName);
@@ -342,7 +342,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
                 }
                 else
                 {
-                    using (var cmd = new SqlCommand("SELECT * FROM useraccounts WHERE FirstName = @firstname AND LastName = @lastname", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM useraccounts WHERE FirstName = @firstname AND LastName = @lastname", connection))
                     {
                         cmd.Parameters.AddParameter("@firstname", firstName);
                         cmd.Parameters.AddParameter("@lastname", lastName);
@@ -463,7 +463,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT TOP 1 SerialNumber FROM useraccounts_serial", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) SerialNumber FROM useraccounts_serial", connection))
                 {
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {

@@ -117,7 +117,7 @@ namespace SilverSim.Database.MsSql.AuthInfo
                 using (var connection = new SqlConnection(m_ConnectionString))
                 {
                     connection.Open();
-                    using (var cmd = new SqlCommand("SELECT * FROM auth WHERE UserID = @id", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM auth WHERE UserID = @id", connection))
                     {
                         cmd.Parameters.AddParameter("@id", accountid);
                         using (SqlDataReader reader = cmd.ExecuteReader())

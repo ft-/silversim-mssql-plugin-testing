@@ -71,7 +71,7 @@ namespace SilverSim.Database.MsSql.Groups
             {
                 connection.Open();
 
-                using (var cmd = new SqlCommand("SELECT * FROM groupnames WHERE GroupID = @groupid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM groupnames WHERE GroupID = @groupid", connection))
                 {
                     cmd.Parameters.AddParameter("@groupid", groupID);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())

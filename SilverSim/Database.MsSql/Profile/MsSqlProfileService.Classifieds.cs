@@ -56,7 +56,7 @@ namespace SilverSim.Database.MsSql.Profile
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM classifieds WHERE classifieduuid = @uuid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM classifieds WHERE classifieduuid = @uuid", conn))
                 {
                     cmd.Parameters.AddParameter("@uuid", id);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -95,7 +95,7 @@ namespace SilverSim.Database.MsSql.Profile
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT classifieduuid FROM classifieds WHERE classifieduuid = @uuid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) classifieduuid FROM classifieds WHERE classifieduuid = @uuid", conn))
                 {
                     cmd.Parameters.AddParameter("@uuid", id);
                     using (SqlDataReader reader = cmd.ExecuteReader())

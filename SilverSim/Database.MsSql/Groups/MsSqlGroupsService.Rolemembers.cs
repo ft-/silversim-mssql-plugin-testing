@@ -229,7 +229,7 @@ namespace SilverSim.Database.MsSql.Groups
                 using (var conn = new SqlConnection(m_ConnectionString))
                 {
                     conn.Open();
-                    using (var cmd = new SqlCommand("SELECT rm.GroupID FROM grouprolememberships AS rm INNER JOIN grouproles AS r ON rm.GroupID = r.GroupID AND rm.RoleID = r.RoleID WHERE rm.GroupID = @groupid AND rm.RoleID = @roleid and rm.PrincipalID = @principalid", conn))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) rm.GroupID FROM grouprolememberships AS rm INNER JOIN grouproles AS r ON rm.GroupID = r.GroupID AND rm.RoleID = r.RoleID WHERE rm.GroupID = @groupid AND rm.RoleID = @roleid and rm.PrincipalID = @principalid", conn))
                     {
                         cmd.Parameters.AddParameter("@groupid", group.ID);
                         cmd.Parameters.AddParameter("@roleid", roleID);
@@ -309,7 +309,7 @@ namespace SilverSim.Database.MsSql.Groups
                 using (var conn = new SqlConnection(m_ConnectionString))
                 {
                     conn.Open();
-                    using (var cmd = new SqlCommand("SELECT rm.*, r.Powers FROM grouprolememberships AS rm INNER JOIN grouproles AS r ON rm.GroupID = r.GroupID AND rm.RoleID = r.RoleID WHERE rm.GroupID = @groupid AND rm.RoleID = @roleid and rm.PrincipalID = @principalid", conn))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) rm.*, r.Powers FROM grouprolememberships AS rm INNER JOIN grouproles AS r ON rm.GroupID = r.GroupID AND rm.RoleID = r.RoleID WHERE rm.GroupID = @groupid AND rm.RoleID = @roleid and rm.PrincipalID = @principalid", conn))
                     {
                         cmd.Parameters.AddParameter("@groupid", group.ID);
                         cmd.Parameters.AddParameter("@roleid", roleID);

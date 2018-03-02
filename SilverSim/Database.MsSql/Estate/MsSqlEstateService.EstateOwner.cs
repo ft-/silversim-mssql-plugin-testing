@@ -33,7 +33,7 @@ namespace SilverSim.Database.MsSql.Estate
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT Owner FROM estates WHERE ID = @id", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) Owner FROM estates WHERE ID = @id", conn))
                 {
                     cmd.Parameters.AddParameter("@id", estateID);
                     using (SqlDataReader reader = cmd.ExecuteReader())

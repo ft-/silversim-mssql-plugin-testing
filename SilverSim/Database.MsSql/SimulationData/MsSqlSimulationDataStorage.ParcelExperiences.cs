@@ -140,7 +140,7 @@ namespace SilverSim.Database.MsSql.SimulationData
             {
                 connection.Open();
                 /* we use a specific implementation to reduce the result set here */
-                using (var cmd = new SqlCommand("SELECT IsAllowed FROM parcelexperiences WHERE RegionID = @regionid AND ParcelID = @parcelid AND ExperienceID LIKE @experienceid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) IsAllowed FROM parcelexperiences WHERE RegionID = @regionid AND ParcelID = @parcelid AND ExperienceID LIKE @experienceid", connection))
                 {
                     cmd.Parameters.AddParameter("@regionid", regionID);
                     cmd.Parameters.AddParameter("@parcelid", parcelID);

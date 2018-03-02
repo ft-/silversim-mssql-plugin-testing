@@ -34,7 +34,7 @@ namespace SilverSim.Database.MsSql.Profile
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT useruuid FROM usersettings where useruuid = @uuid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) useruuid FROM usersettings where useruuid = @uuid", conn))
                 {
                     cmd.Parameters.AddParameter("@uuid", user.ID);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -50,7 +50,7 @@ namespace SilverSim.Database.MsSql.Profile
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM usersettings where useruuid = @uuid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM usersettings where useruuid = @uuid", conn))
                 {
                     cmd.Parameters.AddParameter("@uuid", user.ID);
                     using (SqlDataReader reader = cmd.ExecuteReader())

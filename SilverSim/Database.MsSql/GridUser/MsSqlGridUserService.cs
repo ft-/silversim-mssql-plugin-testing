@@ -99,7 +99,7 @@ namespace SilverSim.Database.MsSql.GridUser
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM griduser WHERE ID = @id", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM griduser WHERE ID = @id", conn))
                 {
                     cmd.Parameters.AddParameter("@id", userID);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -123,7 +123,7 @@ namespace SilverSim.Database.MsSql.GridUser
                 using (var conn = new SqlConnection(m_ConnectionString))
                 {
                     conn.Open();
-                    using (var cmd = new SqlCommand("SELECT * FROM griduser WHERE ID = @id", conn))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM griduser WHERE ID = @id", conn))
                     {
                         cmd.Parameters.AddParameter("@id", userID);
                         using (SqlDataReader dbReader = cmd.ExecuteReader())

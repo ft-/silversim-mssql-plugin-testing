@@ -73,7 +73,7 @@ namespace SilverSim.Database.MsSql.Grid
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT flags FROM regiondefaults WHERE uuid = @id", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) flags FROM regiondefaults WHERE uuid = @id", connection))
                 {
                     cmd.Parameters.AddParameter("@id", regionId);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -96,7 +96,7 @@ namespace SilverSim.Database.MsSql.Grid
                 connection.InsideTransaction((transaction) =>
                 {
                     bool haveEntry = false;
-                    using (var cmd = new SqlCommand("SELECT * FROM regiondefaults WHERE uuid = @id", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM regiondefaults WHERE uuid = @id", connection))
                     {
                         cmd.Transaction = transaction;
                         cmd.Parameters.AddParameter("@id", regionId);

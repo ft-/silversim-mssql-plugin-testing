@@ -122,7 +122,7 @@ namespace SilverSim.Database.MsSql.ServerParam
                 {
                     connection.Open();
 
-                    using (var cmd = new SqlCommand("SELECT * FROM serverparams WHERE parametername = @parametername", connection))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM serverparams WHERE parametername = @parametername", connection))
                     {
                         cmd.Parameters.AddParameter("@parametername", parametername);
                         using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -171,7 +171,7 @@ namespace SilverSim.Database.MsSql.ServerParam
             {
                 connection.Open();
 
-                using (var cmd = new SqlCommand("SELECT * FROM serverparams WHERE regionid = @regionid AND parametername = @parametername", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM serverparams WHERE regionid = @regionid AND parametername = @parametername", connection))
                 {
                     cmd.Parameters.AddParameter("@regionid", regionID);
                     cmd.Parameters.AddParameter("@parametername", parameter);
@@ -204,7 +204,7 @@ namespace SilverSim.Database.MsSql.ServerParam
             {
                 connection.Open();
 
-                using (var cmd = new SqlCommand("SELECT * FROM serverparams WHERE regionid = @regionid AND parametername = @parametername", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM serverparams WHERE regionid = @regionid AND parametername = @parametername", connection))
                 {
                     cmd.Parameters.AddParameter("@regionid", regionID);
                     cmd.Parameters.AddParameter("@parametername", parameter);

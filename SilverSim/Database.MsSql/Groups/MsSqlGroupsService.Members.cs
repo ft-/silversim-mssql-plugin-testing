@@ -127,7 +127,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT GroupID FROM groupmemberships WHERE GroupID = @groupid AND PrincipalID = @principalid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) GroupID FROM groupmemberships WHERE GroupID = @groupid AND PrincipalID = @principalid", conn))
                 {
                     cmd.Parameters.AddParameter("@groupid", group.ID);
                     cmd.Parameters.AddParameter("@principalid", principal.ID);
@@ -180,7 +180,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM groupmemberships WHERE GroupID = @groupid AND PrincipalID = @principalid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM groupmemberships WHERE GroupID = @groupid AND PrincipalID = @principalid", conn))
                 {
                     cmd.Parameters.AddParameter("@groupid", group.ID);
                     cmd.Parameters.AddParameter("@principalid", principal.ID);

@@ -111,7 +111,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM groupnotices WHERE NoticeID = @noticeid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM groupnotices WHERE NoticeID = @noticeid", conn))
                 {
                     cmd.Parameters.AddParameter("@noticeid", groupNoticeID);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -136,7 +136,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT NoticeID FROM groupnotices WHERE NoticeID = @noticeid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) NoticeID FROM groupnotices WHERE NoticeID = @noticeid", conn))
                 {
                     cmd.Parameters.AddParameter("@noticeid", groupNoticeID);
                     using (SqlDataReader reader = cmd.ExecuteReader())

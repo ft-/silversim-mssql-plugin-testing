@@ -184,7 +184,7 @@ namespace SilverSim.Database.MsSql.Avatar
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT [Value] FROM avatars WHERE PrincipalID = @principalid AND [Name] = @name", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) [Value] FROM avatars WHERE PrincipalID = @principalid AND [Name] = @name", connection))
                 {
                     cmd.Parameters.AddWithValue("@principalid", avatarID.ToString());
                     cmd.Parameters.AddWithValue("@name", itemKey);

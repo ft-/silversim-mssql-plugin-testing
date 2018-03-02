@@ -110,7 +110,7 @@ namespace SilverSim.Database.MsSql.SimulationData
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT ConvexData FROM meshphysics WHERE MeshID=@id AND PhysicsShape=@stype", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) ConvexData FROM meshphysics WHERE MeshID=@id AND PhysicsShape=@stype", conn))
                 {
                     cmd.Parameters.AddParameter("@id", meshid);
                     cmd.Parameters.AddParameter("@stype", physicsShape);
@@ -137,7 +137,7 @@ namespace SilverSim.Database.MsSql.SimulationData
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT ConvexData FROM primphysics WHERE ShapeKey=@id", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) ConvexData FROM primphysics WHERE ShapeKey=@id", conn))
                 {
                     cmd.Parameters.AddParameter("@id", primShape.Serialization);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -163,7 +163,7 @@ namespace SilverSim.Database.MsSql.SimulationData
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT NULL FROM meshphysics WHERE MeshID=@id AND PhysicsShape=@stype", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) NULL FROM meshphysics WHERE MeshID=@id AND PhysicsShape=@stype", conn))
                 {
                     cmd.Parameters.AddParameter("@id", sculptmeshid);
                     cmd.Parameters.AddParameter("@stype", physicsShape);
@@ -180,7 +180,7 @@ namespace SilverSim.Database.MsSql.SimulationData
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT NULL FROM primphysics WHERE ShapeKey=@id", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) NULL FROM primphysics WHERE ShapeKey=@id", conn))
                 {
                     cmd.Parameters.AddParameter("@id", primShape.Serialization);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())

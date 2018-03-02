@@ -174,7 +174,7 @@ namespace SilverSim.Database.MsSql.SimulationData
                     }
 
                     using (var cmd = new SqlCommand("INSERT INTO " + m_TableName + " ([RegionID], [ParcelID], [Accessor], [ExpiresAt]) SELECT @RegionID, @ParcelID, @Accessor, @ExpiresAt " +
-                        " WHERE NOT EXISTS (SELECT NULL FROM " + m_TableName + " WHERE [RegionID] = @RegionID AND [ParcelID] = @ParcelID AND [Accessor] = @Accessor)", connection)
+                        " WHERE NOT EXISTS (SELECT TOP(1) NULL FROM " + m_TableName + " WHERE [RegionID] = @RegionID AND [ParcelID] = @ParcelID AND [Accessor] = @Accessor)", connection)
                     {
                         Transaction = transaction
                     })

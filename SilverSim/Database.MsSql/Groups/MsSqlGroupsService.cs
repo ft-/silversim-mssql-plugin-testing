@@ -89,7 +89,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT Powers FROM grouproles AS r WHERE r.GroupID = @groupid AND r.RoleID = @grouproleid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) Powers FROM grouproles AS r WHERE r.GroupID = @groupid AND r.RoleID = @grouproleid", conn))
                 {
                     cmd.Parameters.AddParameter("@groupid", group.ID);
                     cmd.Parameters.AddParameter("@grouproleid", roleID);

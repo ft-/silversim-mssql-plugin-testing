@@ -148,7 +148,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT ID, FirstName, LastName FROM useraccounts WHERE ID = @id", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) ID, FirstName, LastName FROM useraccounts WHERE ID = @id", connection))
                 {
                     cmd.Parameters.AddParameter("@id", key);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -170,7 +170,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT ID, FirstName, LastName FROM useraccounts WHERE FirstName = @first AND LastName = @last", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) ID, FirstName, LastName FROM useraccounts WHERE FirstName = @first AND LastName = @last", connection))
                 {
                     cmd.Parameters.AddParameter("@first", firstName);
                     cmd.Parameters.AddParameter("@last", lastName);

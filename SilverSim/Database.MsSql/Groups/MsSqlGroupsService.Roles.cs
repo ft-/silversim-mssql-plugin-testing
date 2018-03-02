@@ -118,7 +118,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT r.GroupID FROM grouproles AS r WHERE r.GroupID = @groupid AND r.RoleID = @roleid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) r.GroupID FROM grouproles AS r WHERE r.GroupID = @groupid AND r.RoleID = @roleid", conn))
                 {
                     cmd.Parameters.AddParameter("@groupid", group.ID);
                     cmd.Parameters.AddParameter("@roleid", roleID);
@@ -167,7 +167,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT r.*, " + RCountQuery + " FROM grouproles AS r WHERE r.GroupID = @groupid AND r.RoleID = @roleid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) r.*, " + RCountQuery + " FROM grouproles AS r WHERE r.GroupID = @groupid AND r.RoleID = @roleid", conn))
                 {
                     cmd.Parameters.AddParameter("@groupid", group.ID);
                     cmd.Parameters.AddParameter("@roleid", roleID);

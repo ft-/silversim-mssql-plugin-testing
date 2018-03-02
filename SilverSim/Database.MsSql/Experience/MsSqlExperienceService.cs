@@ -234,7 +234,7 @@ namespace SilverSim.Database.MsSql.Experience
                 conn.Open();
                 return conn.InsideTransaction<bool>((transaction) =>
                 {
-                    using (var cmd = new SqlCommand("SELECT Owner FROM experiences WHERE ID = @experienceid", conn))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) Owner FROM experiences WHERE ID = @experienceid", conn))
                     {
                         cmd.Transaction = transaction;
                         cmd.Parameters.AddParameter("@experienceid", id);
@@ -295,7 +295,7 @@ namespace SilverSim.Database.MsSql.Experience
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM experiences WHERE ID = @id", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM experiences WHERE ID = @id", conn))
                 {
                     cmd.Parameters.AddParameter("@id", experienceID);
                     using (SqlDataReader reader = cmd.ExecuteReader())

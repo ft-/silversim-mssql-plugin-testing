@@ -34,7 +34,7 @@ namespace SilverSim.Database.MsSql.Groups
                 using (var conn = new SqlConnection(m_ConnectionString))
                 {
                     conn.Open();
-                    using (var cmd = new SqlCommand("SELECT ActiveGroupID FROM activegroup WHERE PrincipalID = @principalid", conn))
+                    using (var cmd = new SqlCommand("SELECT TOP(1) ActiveGroupID FROM activegroup WHERE PrincipalID = @principalid", conn))
                     {
                         cmd.Parameters.AddParameter("@principalid", principalID.ID);
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -101,7 +101,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT ActiveGroupID FROM activegroup WHERE PrincipalID = @principalid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) ActiveGroupID FROM activegroup WHERE PrincipalID = @principalid", conn))
                 {
                     cmd.Parameters.AddParameter("@principalid", principalID.ID);
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -125,7 +125,7 @@ namespace SilverSim.Database.MsSql.Groups
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT SelectedRoleID FROM groupmemberships WHERE PrincipalID = @principalid AND GroupID = @groupid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) SelectedRoleID FROM groupmemberships WHERE PrincipalID = @principalid AND GroupID = @groupid", conn))
                 {
                     cmd.Parameters.AddParameter("@groupid", group.ID);
                     cmd.Parameters.AddParameter("@principalid", principal.ID);

@@ -99,9 +99,7 @@ namespace SilverSim.Database.MsSql.Groups
             {
                 conn.Open();
                 using (var cmd = new SqlCommand(
-                        "SELECT g.*, m.PrincipalID, m.SelectedRoleID AS ActiveRoleID, m.Contribution, m.ListInProfile, m.AcceptNotices, m.AccessToken, " +
-                        "r.RoleID, r.Name AS RoleName, r.Description AS RoleDescription, r.Title as RoleTitle, r.Powers as RolePowers, " +
-                        RCountQuery + "," + MCountQuery + " FROM (groupmemberships AS m INNER JOIN groups AS g ON m.GroupID = g.GroupID) " +
+                        "SELECT TOP(1) NULL FROM (groupmemberships AS m INNER JOIN groups AS g ON m.GroupID = g.GroupID) " +
                         "INNER JOIN grouproles AS r ON m.SelectedRoleID = r.RoleID " +
                         "WHERE m.PrincipalID = @principalid", conn))
                 {
@@ -121,7 +119,7 @@ namespace SilverSim.Database.MsSql.Groups
             {
                 conn.Open();
                 using (var cmd = new SqlCommand(
-                        "SELECT g.*, m.PrincipalID, m.SelectedRoleID AS ActiveRoleID, m.Contribution, m.ListInProfile, m.AcceptNotices, m.AccessToken, " +
+                        "SELECT TOP(1) g.*, m.PrincipalID, m.SelectedRoleID AS ActiveRoleID, m.Contribution, m.ListInProfile, m.AcceptNotices, m.AccessToken, " +
                         "r.RoleID, r.Name AS RoleName, r.Description AS RoleDescription, r.Title as RoleTitle, r.Powers as RolePowers, " +
                         RCountQuery + "," + MCountQuery + " FROM (groupmemberships AS m INNER JOIN groups AS g ON m.GroupID = g.GroupID) " +
                         "INNER JOIN grouproles AS r ON m.SelectedRoleID = r.RoleID " +

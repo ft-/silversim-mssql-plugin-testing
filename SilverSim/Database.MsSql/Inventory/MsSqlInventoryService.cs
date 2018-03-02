@@ -157,7 +157,7 @@ namespace SilverSim.Database.MsSql.Inventory
 
         private bool TryGetParentFolderId(SqlConnection connection, UUID principalID, UUID folderID, out UUID parentFolderID, SqlTransaction transaction = null)
         {
-            using (var cmd = new SqlCommand("SELECT ParentFolderID FROM " + m_InventoryFolderTable + " WHERE OwnerID = @ownerid AND ID = @folderid", connection))
+            using (var cmd = new SqlCommand("SELECT TOP(1) ParentFolderID FROM " + m_InventoryFolderTable + " WHERE OwnerID = @ownerid AND ID = @folderid", connection))
             {
                 cmd.Transaction = transaction;
                 cmd.Parameters.AddParameter("@ownerid", principalID);
@@ -179,7 +179,7 @@ namespace SilverSim.Database.MsSql.Inventory
         {
             if (parentFolderID == UUID.Zero)
             {
-                using (var cmd = new SqlCommand("SELECT NULL FROM " + m_InventoryFolderTable + " WHERE OwnerID = @ownerid AND ParentFolderID = @parentfolderid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) NULL FROM " + m_InventoryFolderTable + " WHERE OwnerID = @ownerid AND ParentFolderID = @parentfolderid", conn))
                 {
                     cmd.Transaction = transaction;
                     cmd.Parameters.AddParameter("@ownerid", principalID);

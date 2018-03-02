@@ -58,7 +58,7 @@ namespace SilverSim.Database.MsSql.AvatarName
             {
                 connection.Open();
 
-                using (var cmd = new SqlCommand("SELECT * FROM avatarnames WHERE FirstName = @firstName AND LastName = @lastName", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM avatarnames WHERE FirstName = @firstName AND LastName = @lastName", connection))
                 {
                     cmd.Parameters.AddParameter("@firstName", firstName);
                     cmd.Parameters.AddParameter("@lastName", lastName);
@@ -95,7 +95,7 @@ namespace SilverSim.Database.MsSql.AvatarName
             {
                 connection.Open();
 
-                using (var cmd = new SqlCommand("SELECT * FROM avatarnames WHERE AvatarID = @avatarid", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM avatarnames WHERE AvatarID = @avatarid", connection))
                 {
                     cmd.Parameters.AddParameter("@avatarid", key);
                     using (SqlDataReader dbreader = cmd.ExecuteReader())

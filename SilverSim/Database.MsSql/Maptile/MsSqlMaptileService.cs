@@ -88,7 +88,7 @@ namespace SilverSim.Database.MsSql.Maptile
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM maptiles WHERE LocX = @locx AND LocY = @locy AND ZoomLevel = @zoomlevel", connection))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM maptiles WHERE LocX = @locx AND LocY = @locy AND ZoomLevel = @zoomlevel", connection))
                 {
                     cmd.Parameters.AddParameter("@locx", location.X);
                     cmd.Parameters.AddParameter("@locy", location.Y);

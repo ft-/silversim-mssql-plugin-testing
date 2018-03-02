@@ -105,7 +105,7 @@ namespace SilverSim.Database.MsSql.Estate
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM estateexperiences WHERE EstateID = @estateid AND ExperienceID = @experienceid", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM estateexperiences WHERE EstateID = @estateid AND ExperienceID = @experienceid", conn))
                 {
                     cmd.Parameters.AddParameter("@estateid", estateID);
                     cmd.Parameters.AddParameter("@experienceid", experienceID);
