@@ -149,7 +149,7 @@ namespace SilverSim.Database.MsSql._Migration
                     (colInfo.IsLong ? "nvarchar(max)" : "nvarchar(4000)") :
                     (colInfo.IsFixed ? "NCHAR" : "NVARCHAR") + "(" + colInfo.Cardinality.ToString() + ")";
             }
-            else if (f == typeof(UUI) || f == typeof(UGI))
+            else if (f == typeof(UGUI) || f == typeof(UGUIWithName) || f == typeof(UGI))
             {
                 typeSql = "NVARCHAR(255)";
             }
@@ -401,7 +401,9 @@ namespace SilverSim.Database.MsSql._Migration
             {
                 if (colInfo.Default.GetType() != colInfo.FieldType &&
                     !(colInfo.Default.GetType() == typeof(UUID) &&
-                    colInfo.FieldType == typeof(UUI)) &&
+                    colInfo.FieldType == typeof(UGUI)) &&
+                    !(colInfo.Default.GetType() == typeof(UUID) &&
+                    colInfo.FieldType == typeof(UGUIWithName)) &&
                     !(colInfo.Default.GetType() == typeof(UUID) &&
                     colInfo.FieldType == typeof(UGI)))
                 {

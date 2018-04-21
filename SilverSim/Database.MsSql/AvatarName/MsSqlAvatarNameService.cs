@@ -52,7 +52,7 @@ namespace SilverSim.Database.MsSql.AvatarName
         #endregion
 
         #region Accessors
-        public override bool TryGetValue(string firstName, string lastName, out UUI uui)
+        public override bool TryGetValue(string firstName, string lastName, out UGUIWithName uui)
         {
             using (var connection = new SqlConnection(m_ConnectionString))
             {
@@ -66,7 +66,7 @@ namespace SilverSim.Database.MsSql.AvatarName
                     {
                         if (!dbreader.Read())
                         {
-                            uui = default(UUI);
+                            uui = default(UGUIWithName);
                             return false;
                         }
                         uui = ToUUI(dbreader);
@@ -76,11 +76,11 @@ namespace SilverSim.Database.MsSql.AvatarName
             }
         }
 
-        public override UUI this[string firstName, string lastName]
+        public override UGUIWithName this[string firstName, string lastName]
         {
             get
             {
-                UUI uui;
+                UGUIWithName uui;
                 if (!TryGetValue(firstName, lastName, out uui))
                 {
                     throw new KeyNotFoundException();
@@ -89,7 +89,7 @@ namespace SilverSim.Database.MsSql.AvatarName
             }
         }
 
-        public override bool TryGetValue(UUID key, out UUI uui)
+        public override bool TryGetValue(UUID key, out UGUIWithName uui)
         {
             using (var connection = new SqlConnection(m_ConnectionString))
             {
@@ -102,7 +102,7 @@ namespace SilverSim.Database.MsSql.AvatarName
                     {
                         if (!dbreader.Read())
                         {
-                            uui = default(UUI);
+                            uui = default(UGUIWithName);
                             return false;
                         }
                         uui = ToUUI(dbreader);
@@ -112,11 +112,11 @@ namespace SilverSim.Database.MsSql.AvatarName
             }
         }
 
-        public override UUI this[UUID key]
+        public override UGUIWithName this[UUID key]
         {
             get
             {
-                UUI uui;
+                UGUIWithName uui;
                 if (!TryGetValue(key, out uui))
                 {
                     throw new KeyNotFoundException();
@@ -126,7 +126,7 @@ namespace SilverSim.Database.MsSql.AvatarName
         }
         #endregion
 
-        public override void Store(UUI value)
+        public override void Store(UGUIWithName value)
         {
             if (value.IsAuthoritative) /* do not store non-authoritative entries */
             {
@@ -160,11 +160,11 @@ namespace SilverSim.Database.MsSql.AvatarName
             }
         }
 
-        public override List<UUI> Search(string[] names)
+        public override List<UGUIWithName> Search(string[] names)
         {
             if (names.Length < 1 || names.Length > 2)
             {
-                return new List<UUI>();
+                return new List<UGUIWithName>();
             }
 
             if (names.Length == 1)
@@ -198,9 +198,9 @@ namespace SilverSim.Database.MsSql.AvatarName
             }
         }
 
-        private List<UUI> GetSearchResults(SqlCommand cmd)
+        private List<UGUIWithName> GetSearchResults(SqlCommand cmd)
         {
-            var results = new List<UUI>();
+            var results = new List<UGUIWithName>();
             using (SqlDataReader dbreader = cmd.ExecuteReader())
             {
                 while (dbreader.Read())
@@ -211,7 +211,7 @@ namespace SilverSim.Database.MsSql.AvatarName
             }
         }
 
-        private static UUI ToUUI(SqlDataReader dbreader) => new UUI
+        private static UGUIWithName ToUUI(SqlDataReader dbreader) => new UGUIWithName
         {
             ID = dbreader.GetUUID("AvatarID"),
             HomeURI = dbreader.GetUri("HomeURI"),

@@ -28,7 +28,7 @@ namespace SilverSim.Database.MsSql.Estate
 {
     public sealed partial class MsSqlEstateService : IEstateOwnerServiceInterface
     {
-        bool IEstateOwnerServiceInterface.TryGetValue(uint estateID, out UUI uui)
+        bool IEstateOwnerServiceInterface.TryGetValue(uint estateID, out UGUI uui)
         {
             using (var conn = new SqlConnection(m_ConnectionString))
             {
@@ -40,17 +40,17 @@ namespace SilverSim.Database.MsSql.Estate
                     {
                         if (reader.Read())
                         {
-                            uui = reader.GetUUI("Owner");
+                            uui = reader.GetUGUI("Owner");
                             return true;
                         }
                     }
                 }
             }
-            uui = default(UUI);
+            uui = default(UGUI);
             return false;
         }
 
-        List<uint> IEstateOwnerServiceInterface.this[UUI owner]
+        List<uint> IEstateOwnerServiceInterface.this[UGUI owner]
         {
             get
             {
@@ -66,7 +66,7 @@ namespace SilverSim.Database.MsSql.Estate
                         {
                             while (reader.Read())
                             {
-                                UUI uui = reader.GetUUI("Owner");
+                                UGUI uui = reader.GetUGUI("Owner");
                                 if (uui.EqualsGrid(owner))
                                 {
                                     estates.Add((uint)(int)reader["ID"]);
@@ -79,11 +79,11 @@ namespace SilverSim.Database.MsSql.Estate
             }
         }
 
-        UUI IEstateOwnerServiceInterface.this[uint estateID]
+        UGUI IEstateOwnerServiceInterface.this[uint estateID]
         {
             get
             {
-                UUI uui;
+                UGUI uui;
                 if (!EstateOwner.TryGetValue(estateID, out uui))
                 {
                     throw new KeyNotFoundException();

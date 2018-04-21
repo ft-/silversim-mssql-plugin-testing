@@ -44,8 +44,8 @@ namespace SilverSim.Database.MsSql.Experience
             Name = (string)reader["Name"],
             Description = (string)reader["Description"],
             Properties = reader.GetEnum<ExperiencePropertyFlags>("Properties"),
-            Owner = reader.GetUUI("Owner"),
-            Creator = reader.GetUUI("Creator"),
+            Owner = reader.GetUGUI("Owner"),
+            Creator = reader.GetUGUI("Creator"),
             Group = reader.GetUGI("Group"),
             Maturity = reader.GetEnum<RegionAccess>("Maturity"),
             Marketplace = (string)reader["Marketplace"],
@@ -154,7 +154,7 @@ namespace SilverSim.Database.MsSql.Experience
             return result;
         }
 
-        public override List<UUID> GetCreatorExperiences(UUI creator)
+        public override List<UUID> GetCreatorExperiences(UGUI creator)
         {
             var result = new List<UUID>();
             using (var conn = new SqlConnection(m_ConnectionString))
@@ -167,7 +167,7 @@ namespace SilverSim.Database.MsSql.Experience
                     {
                         while (reader.Read())
                         {
-                            if (reader.GetUUI("Creator").EqualsGrid(creator))
+                            if (reader.GetUGUI("Creator").EqualsGrid(creator))
                             {
                                 result.Add(reader.GetUUID("ID"));
                             }
@@ -202,7 +202,7 @@ namespace SilverSim.Database.MsSql.Experience
             return result;
         }
 
-        public override List<UUID> GetOwnerExperiences(UUI owner)
+        public override List<UUID> GetOwnerExperiences(UGUI owner)
         {
             var result = new List<UUID>();
             using (var conn = new SqlConnection(m_ConnectionString))
@@ -215,7 +215,7 @@ namespace SilverSim.Database.MsSql.Experience
                     {
                         while (reader.Read())
                         {
-                            if (reader.GetUUI("Owner").EqualsGrid(owner))
+                            if (reader.GetUGUI("Owner").EqualsGrid(owner))
                             {
                                 result.Add(reader.GetUUID("ID"));
                             }
@@ -227,7 +227,7 @@ namespace SilverSim.Database.MsSql.Experience
         }
 
         private static readonly string[] m_RemoveFromTables = new string[] { "experiencekeyvalues", "experienceadmins", "experienceusers" };
-        public override bool Remove(UUI requestingAgent, UUID id)
+        public override bool Remove(UGUI requestingAgent, UUID id)
         {
             using (var conn = new SqlConnection(m_ConnectionString))
             {
@@ -245,7 +245,7 @@ namespace SilverSim.Database.MsSql.Experience
                                 return false;
                             }
 
-                            if (!reader.GetUUI("Owner").EqualsGrid(requestingAgent))
+                            if (!reader.GetUGUI("Owner").EqualsGrid(requestingAgent))
                             {
                                 return false;
                             }
@@ -312,7 +312,7 @@ namespace SilverSim.Database.MsSql.Experience
             return false;
         }
 
-        public override void Update(UUI requestingAgent, ExperienceInfo info)
+        public override void Update(UGUI requestingAgent, ExperienceInfo info)
         {
             var vals = new Dictionary<string, object>();
             vals.Add("Name", info.Name);
@@ -339,7 +339,7 @@ namespace SilverSim.Database.MsSql.Experience
                         {
                             while (reader.Read())
                             {
-                                if (reader.GetUUI("Admin").EqualsGrid(requestingAgent))
+                                if (reader.GetUGUI("Admin").EqualsGrid(requestingAgent))
                                 {
                                     isallowed = true;
                                 }
@@ -356,7 +356,7 @@ namespace SilverSim.Database.MsSql.Experience
                             {
                                 if (reader.Read())
                                 {
-                                    isallowed = reader.GetUUI("Owner").EqualsGrid(requestingAgent);
+                                    isallowed = reader.GetUGUI("Owner").EqualsGrid(requestingAgent);
                                 }
                             }
                         }
@@ -394,8 +394,8 @@ namespace SilverSim.Database.MsSql.Experience
             new AddColumn<string>("Name") { Cardinality = 255, Default = string.Empty },
             new AddColumn<string>("Description") { Cardinality = 255, Default = string.Empty },
             new AddColumn<ExperiencePropertyFlags>("Properties") { IsNullAllowed = false, Default = ExperiencePropertyFlags.None },
-            new AddColumn<UUI>("Owner") { IsNullAllowed = false, Default = UUI.Unknown },
-            new AddColumn<UUI>("Creator") { IsNullAllowed = false, Default = UUI.Unknown },
+            new AddColumn<UGUI>("Owner") { IsNullAllowed = false, Default = UGUI.Unknown },
+            new AddColumn<UGUI>("Creator") { IsNullAllowed = false, Default = UGUI.Unknown },
             new AddColumn<UGI>("Group") { IsNullAllowed = false, Default = UGI.Unknown },
             new AddColumn<RegionAccess>("Maturity") { IsNullAllowed = false, Default = RegionAccess.Mature },
             new AddColumn<string>("Marketplace") { IsNullAllowed = false, Cardinality = 255, Default = string.Empty },
@@ -406,13 +406,13 @@ namespace SilverSim.Database.MsSql.Experience
 
             new SqlTable("experienceadmins"),
             new AddColumn<UUID>("ExperienceID") { IsNullAllowed = false },
-            new AddColumn<UUI>("Admin") { IsNullAllowed = false },
+            new AddColumn<UGUI>("Admin") { IsNullAllowed = false },
             new PrimaryKeyInfo("ExperienceID", "Admin"),
             new NamedKeyInfo("ExperienceID", "ExperienceID"),
 
             new SqlTable("experienceusers"),
             new AddColumn<UUID>("ExperienceID") { IsNullAllowed = false },
-            new AddColumn<UUI>("User") { IsNullAllowed = false },
+            new AddColumn<UGUI>("User") { IsNullAllowed = false },
             new PrimaryKeyInfo("ExperienceID", "User"),
             new NamedKeyInfo("ExperienceID", "ExperienceID"),
             new NamedKeyInfo("User", "User"),

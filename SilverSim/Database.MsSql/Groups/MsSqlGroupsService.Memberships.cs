@@ -29,7 +29,7 @@ namespace SilverSim.Database.MsSql.Groups
 {
     public sealed partial class MsSqlGroupsService : GroupsServiceInterface.IGroupMembershipsInterface
     {
-        private GroupMembership MembershipFromReader(SqlDataReader reader, UUI requestingAgent) => new GroupMembership
+        private GroupMembership MembershipFromReader(SqlDataReader reader, UGUI requestingAgent) => new GroupMembership
         {
             IsAcceptNotices = (bool)reader["AcceptNotices"],
             Contribution = (int)reader["Contribution"],
@@ -38,12 +38,12 @@ namespace SilverSim.Database.MsSql.Groups
             GroupTitle = (string)reader["RoleTitle"],
             IsListInProfile = (bool)reader["ListInProfile"],
             Group = ResolveName(requestingAgent, new UGI(reader.GetUUID("GroupID"))),
-            Principal = ResolveName(new UUI(reader.GetUUID("PrincipalID"))),
+            Principal = ResolveName(new UGUI(reader.GetUUID("PrincipalID"))),
 
             IsAllowPublish = (bool)reader["AllowPublish"],
             Charter = (string)reader["Charter"],
             ActiveRoleID = reader.GetUUID("ActiveRoleID"),
-            Founder = ResolveName(new UUI(reader.GetUUID("FounderID"))),
+            Founder = ResolveName(new UGUI(reader.GetUUID("FounderID"))),
             AccessToken = (string)reader["AccessToken"],
             IsMaturePublish = (bool)reader["MaturePublish"],
             IsOpenEnrollment = (bool)reader["OpenEnrollment"],
@@ -51,7 +51,7 @@ namespace SilverSim.Database.MsSql.Groups
             IsShownInList = (bool)reader["ShowInList"]
         };
 
-        List<GroupMembership> IGroupMembershipsInterface.this[UUI requestingAgent, UUI principal]
+        List<GroupMembership> IGroupMembershipsInterface.this[UGUI requestingAgent, UGUI principal]
         {
             get
             {
@@ -80,7 +80,7 @@ namespace SilverSim.Database.MsSql.Groups
             }
         }
 
-        GroupMembership IGroupMembershipsInterface.this[UUI requestingAgent, UGI group, UUI principal]
+        GroupMembership IGroupMembershipsInterface.this[UGUI requestingAgent, UGI group, UGUI principal]
         {
             get
             {
@@ -93,7 +93,7 @@ namespace SilverSim.Database.MsSql.Groups
             }
         }
 
-        bool IGroupMembershipsInterface.ContainsKey(UUI requestingAgent, UGI group, UUI principal)
+        bool IGroupMembershipsInterface.ContainsKey(UGUI requestingAgent, UGI group, UGUI principal)
         {
             using (var conn = new SqlConnection(m_ConnectionString))
             {
@@ -112,7 +112,7 @@ namespace SilverSim.Database.MsSql.Groups
             }
         }
 
-        bool IGroupMembershipsInterface.TryGetValue(UUI requestingAgent, UGI group, UUI principal, out GroupMembership gmem)
+        bool IGroupMembershipsInterface.TryGetValue(UGUI requestingAgent, UGI group, UGUI principal, out GroupMembership gmem)
         {
             gmem = null;
             using (var conn = new SqlConnection(m_ConnectionString))

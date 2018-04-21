@@ -27,7 +27,7 @@ namespace SilverSim.Database.MsSql.Groups
 {
     public sealed partial class MsSqlGroupsService : GroupsServiceInterface.IGroupSelectInterface
     {
-        UGI IGroupSelectInterface.this[UUI requestingAgent, UUI principalID]
+        UGI IGroupSelectInterface.this[UGUI requestingAgent, UGUI principalID]
         {
             get
             {
@@ -68,7 +68,7 @@ namespace SilverSim.Database.MsSql.Groups
         }
 
         /* get/set active role id */
-        UUID IGroupSelectInterface.this[UUI requestingAgent, UGI group, UUI principal]
+        UUID IGroupSelectInterface.this[UGUI requestingAgent, UGI group, UGUI principal]
         {
             get
             {
@@ -96,7 +96,7 @@ namespace SilverSim.Database.MsSql.Groups
             }
         }
 
-        bool IGroupSelectInterface.TryGetValue(UUI requestingAgent, UUI principalID, out UGI ugi)
+        bool IGroupSelectInterface.TryGetValue(UGUI requestingAgent, UGUI principalID, out UGI ugi)
         {
             using (var conn = new SqlConnection(m_ConnectionString))
             {
@@ -119,7 +119,7 @@ namespace SilverSim.Database.MsSql.Groups
             return false;
         }
 
-        bool IGroupSelectInterface.TryGetValue(UUI requestingAgent, UGI group, UUI principal, out UUID id)
+        bool IGroupSelectInterface.TryGetValue(UGUI requestingAgent, UGI group, UGUI principal, out UUID id)
         {
             id = UUID.Zero;
             using (var conn = new SqlConnection(m_ConnectionString))

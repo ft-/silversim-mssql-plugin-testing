@@ -534,11 +534,11 @@ namespace SilverSim.Database.MsSql.UserAccounts
             }
         }
 
-        public List<UUI> AccountList
+        public List<UGUIWithName> AccountList
         {
             get
             {
-                var list = new List<UUI>();
+                var list = new List<UGUIWithName>();
 
                 using (var conn = new SqlConnection(m_ConnectionString))
                 {
@@ -549,7 +549,7 @@ namespace SilverSim.Database.MsSql.UserAccounts
                         {
                             while (reader.Read())
                             {
-                                list.Add(new UUI
+                                list.Add(new UGUIWithName
                                 {
                                     ID = reader.GetUUID("ID"),
                                     FirstName = (string)reader["FirstName"],

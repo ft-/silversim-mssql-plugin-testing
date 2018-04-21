@@ -231,7 +231,7 @@ namespace SilverSim.Database.MsSql
             {
                 sqlparam.AddWithValue(key, (Guid)(UUID)value);
             }
-            else if (t == typeof(UUI) || t == typeof(UGI) || t == typeof(Uri))
+            else if (t == typeof(UGUI) || t == typeof(UGUIWithName) || t == typeof(UGI) || t == typeof(Uri))
             {
                 sqlparam.AddWithValue(key, value.ToString());
             }
@@ -718,21 +718,38 @@ namespace SilverSim.Database.MsSql
             throw new InvalidCastException("GetUUID could not convert value for " + prefix);
         }
 
-        public static UUI GetUUI(this SqlDataReader dbReader, string prefix)
+        public static UGUIWithName GetUGUIWithName(this SqlDataReader dbReader, string prefix)
         {
             object v = dbReader[prefix];
             var t = v?.GetType();
             if (t == typeof(Guid))
             {
-                return new UUI((Guid)v);
+                return new UGUIWithName((Guid)v);
             }
 
             if (t == typeof(string))
             {
-                return new UUI((string)v);
+                return new UGUIWithName((string)v);
             }
 
             throw new InvalidCastException("GetUUI could not convert value for " + prefix);
+        }
+
+        public static UGUI GetUGUI(this SqlDataReader dbReader, string prefix)
+        {
+            object v = dbReader[prefix];
+            var t = v?.GetType();
+            if (t == typeof(Guid))
+            {
+                return new UGUI((Guid)v);
+            }
+
+            if (t == typeof(string))
+            {
+                return new UGUI((string)v);
+            }
+
+            throw new InvalidCastException("GetUGUI could not convert value for " + prefix);
         }
 
         public static UGI GetUGI(this SqlDataReader dbReader, string prefix)

@@ -30,7 +30,7 @@ namespace SilverSim.Database.MsSql.Profile
 {
     public sealed partial class MsSqlProfileService : ProfileServiceInterface.IClassifiedsInterface
     {
-        Dictionary<UUID, string> IClassifiedsInterface.GetClassifieds(UUI user)
+        Dictionary<UUID, string> IClassifiedsInterface.GetClassifieds(UGUI user)
         {
             var res = new Dictionary<UUID, string>();
             using (var conn = new SqlConnection(m_ConnectionString))
@@ -51,7 +51,7 @@ namespace SilverSim.Database.MsSql.Profile
             }
         }
 
-        bool IClassifiedsInterface.TryGetValue(UUI user, UUID id, out ProfileClassified classified)
+        bool IClassifiedsInterface.TryGetValue(UGUI user, UUID id, out ProfileClassified classified)
         {
             using (var conn = new SqlConnection(m_ConnectionString))
             {
@@ -68,7 +68,7 @@ namespace SilverSim.Database.MsSql.Profile
                                 ClassifiedID = reader.GetUUID("classifieduuid"),
                                 Category = (int)reader["category"],
                                 CreationDate = reader.GetDate("creationdate"),
-                                Creator = new UUI(reader.GetUUID("creatoruuid")),
+                                Creator = new UGUI(reader.GetUUID("creatoruuid")),
                                 Description = (string)reader["description"],
                                 ExpirationDate = reader.GetDate("expirationdate"),
                                 Flags = (byte)(int)reader["classifiedflags"],
@@ -90,7 +90,7 @@ namespace SilverSim.Database.MsSql.Profile
             return false;
         }
 
-        bool IClassifiedsInterface.ContainsKey(UUI user, UUID id)
+        bool IClassifiedsInterface.ContainsKey(UGUI user, UUID id)
         {
             using (var conn = new SqlConnection(m_ConnectionString))
             {
@@ -110,7 +110,7 @@ namespace SilverSim.Database.MsSql.Profile
             return false;
         }
 
-        ProfileClassified IClassifiedsInterface.this[UUI user, UUID id]
+        ProfileClassified IClassifiedsInterface.this[UGUI user, UUID id]
         {
             get
             {
