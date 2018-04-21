@@ -186,10 +186,13 @@ namespace SilverSim.Database.MsSql.Friends
 
                     connection.ReplaceInto("friends", vals, new string[] { "UserID", "FriendID" }, transaction);
 
-                    vals.Add("UserID", fi.Friend.ID);
-                    vals.Add("FriendID", fi.User.ID);
-                    vals.Add("Secret", fi.Secret);
-                    vals.Add("RightsToFriend", fi.UserGivenFlags);
+                    vals = new Dictionary<string, object>
+                    {
+                        { "UserID", fi.Friend.ID },
+                        { "FriendID", fi.User.ID },
+                        { "Secret", fi.Secret },
+                        { "RightsToFriend", fi.UserGivenFlags }
+                    };
                     connection.ReplaceInto("friends", vals, new string[] { "UserID", "FriendID" }, transaction);
                 });
             }
