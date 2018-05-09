@@ -501,7 +501,8 @@ namespace SilverSim.Database.MsSql.SimulationData
                     ["IsUnSitTargetActive"] = objpart.IsUnSitTargetActive,
                     ["UnSitTargetOffset"] = objpart.UnSitTargetOffset,
                     ["UnSitTargetOrientation"] = objpart.UnSitTargetOrientation,
-                    ["LocalizationData"] = objpart.LocalizationSerialization
+                    ["LocalizationData"] = objpart.LocalizationSerialization,
+                    ["VehicleData"] = objpart.VehicleParams.ToSerialization()
                 };
                 using (var ms = new MemoryStream())
                 {
