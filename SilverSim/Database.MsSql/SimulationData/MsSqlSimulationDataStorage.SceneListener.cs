@@ -438,6 +438,7 @@ namespace SilverSim.Database.MsSql.SimulationData
                     ["SitAnimation"] = objpart.SitAnimation,
                     ["PhysicsShapeType"] = objpart.PhysicsShapeType,
                     ["PathfindingType"] = objpart.PathfindingType,
+                    ["PathfindingCharacterType"] = objpart.PathfindingCharacterType,
                     ["WalkableCoefficientAvatar"] = objpart.WalkableCoefficientAvatar,
                     ["WalkableCoefficientA"] = objpart.WalkableCoefficientA,
                     ["WalkableCoefficientB"] = objpart.WalkableCoefficientB,
