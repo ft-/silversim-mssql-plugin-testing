@@ -450,18 +450,14 @@ namespace SilverSim.Database.MsSql
             }
             else
             {
-                connection.InsideTransaction((transactioninternal) =>
+                using (var command = new SqlCommand(q1.ToString(), connection))
                 {
-                    using (var command = new SqlCommand(q1.ToString(), connection))
+                    AddParameters(command.Parameters, vals);
+                    if (command.ExecuteNonQuery() < 1)
                     {
-                        command.Transaction = transactioninternal;
-                        AddParameters(command.Parameters, vals);
-                        if (command.ExecuteNonQuery() < 1)
-                        {
-                            throw new MsSqlInsertException();
-                        }
+                        throw new MsSqlInsertException();
                     }
-                });
+                }
             }
         }
         #endregion
