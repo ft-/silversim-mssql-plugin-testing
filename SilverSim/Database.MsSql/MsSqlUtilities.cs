@@ -436,27 +436,13 @@ namespace SilverSim.Database.MsSql
             q1.Append(whereParams);
             q1.Append(");");
 
-            if (null != transaction)
+            using (var command = new SqlCommand(q1.ToString(), connection))
             {
-                using (var command = new SqlCommand(q1.ToString(), connection))
+                command.Transaction = transaction;
+                AddParameters(command.Parameters, vals);
+                if (command.ExecuteNonQuery() < 1)
                 {
-                    command.Transaction = transaction;
-                    AddParameters(command.Parameters, vals);
-                    if (command.ExecuteNonQuery() < 1)
-                    {
-                        throw new MsSqlInsertException();
-                    }
-                }
-            }
-            else
-            {
-                using (var command = new SqlCommand(q1.ToString(), connection))
-                {
-                    AddParameters(command.Parameters, vals);
-                    if (command.ExecuteNonQuery() < 1)
-                    {
-                        throw new MsSqlInsertException();
-                    }
+                    throw new MsSqlInsertException();
                 }
             }
         }
