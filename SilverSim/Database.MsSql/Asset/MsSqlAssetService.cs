@@ -226,7 +226,7 @@ namespace SilverSim.Database.MsSql.Asset
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT TOP(1) id, DATALENGTH(data) AS dataLength, assetType, name, create_time, access_time, asset_flags, temporary FROM assetrefs INNER JOIN assetdata ON assetrefs.hash = assetdata.hash AND assetrefs.assetType = assetdata.assetType WHERE id = @id", conn))
+                using (var cmd = new SqlCommand("SELECT TOP(1) id, DATALENGTH(data) AS dataLength, assetrefs.assetType, name, create_time, access_time, asset_flags, temporary FROM assetrefs INNER JOIN assetdata ON assetrefs.hash = assetdata.hash AND assetrefs.assetType = assetdata.assetType WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddParameter("@id", key);
                     using (SqlDataReader dbReader = cmd.ExecuteReader())
@@ -245,7 +245,7 @@ namespace SilverSim.Database.MsSql.Asset
                             Flags = dbReader.GetEnum<AssetFlags>("asset_flags"),
                             Temporary = (bool)dbReader["temporary"]
                         };
-                        length = (int)dbReader["dataLength"];
+                        length = (int)(long)dbReader["dataLength"];
                     }
                 }
 
