@@ -25,7 +25,7 @@ using System.Data.SqlClient;
 
 namespace SilverSim.Database.MsSql.Groups
 {
-    public sealed partial class MsSqlGroupsService : GroupsServiceInterface.IGroupSelectInterface
+    public sealed partial class MsSqlGroupsService : IGroupSelectInterface
     {
         UGI IGroupSelectInterface.this[UGUI requestingAgent, UGUI principalID]
         {

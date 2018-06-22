@@ -26,7 +26,7 @@ using System.Data.SqlClient;
 
 namespace SilverSim.Database.MsSql.Profile
 {
-    public sealed partial class MsSqlProfileService : ProfileServiceInterface.INotesInterface
+    public sealed partial class MsSqlProfileService : INotesInterface
     {
         bool INotesInterface.ContainsKey(UGUI user, UGUI target)
         {

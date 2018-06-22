@@ -27,7 +27,7 @@ using System.Data.SqlClient;
 
 namespace SilverSim.Database.MsSql.Profile
 {
-    public sealed partial class MsSqlProfileService : ProfileServiceInterface.IUserPreferencesInterface
+    public sealed partial class MsSqlProfileService : IUserPreferencesInterface
     {
         bool IUserPreferencesInterface.ContainsKey(UGUI user)
         {

@@ -333,29 +333,6 @@ namespace SilverSim.Database.MsSql.Estate
             }
         }
 
-        public override EstateInfo this[uint estateID]
-        {
-            get
-            {
-                using (var conn = new SqlConnection(m_ConnectionString))
-                {
-                    conn.Open();
-                    using (var cmd = new SqlCommand("SELECT TOP(1) * FROM estates WHERE ID = @id", conn))
-                    {
-                        cmd.Parameters.AddParameter("@id", estateID);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                return reader.ToEstateInfo();
-                            }
-                        }
-                    }
-                }
-                throw new KeyNotFoundException();
-            }
-        }
-
         public override List<EstateInfo> All
         {
             get

@@ -27,7 +27,7 @@ using System.Data.SqlClient;
 
 namespace SilverSim.Database.MsSql.Groups
 {
-    public sealed partial class MsSqlGroupsService : GroupsServiceInterface.IGroupInvitesInterface
+    public sealed partial class MsSqlGroupsService : IGroupInvitesInterface
     {
         List<GroupInvite> IGroupInvitesInterface.this[UGUI requestingAgent, UGUI principal]
         {
@@ -53,19 +53,6 @@ namespace SilverSim.Database.MsSql.Groups
                         }
                     }
                 }
-            }
-        }
-
-        GroupInvite IGroupInvitesInterface.this[UGUI requestingAgent, UUID groupInviteID]
-        {
-            get
-            {
-                GroupInvite invite;
-                if (!Invites.TryGetValue(requestingAgent, groupInviteID, out invite))
-                {
-                    throw new KeyNotFoundException();
-                }
-                return invite;
             }
         }
 

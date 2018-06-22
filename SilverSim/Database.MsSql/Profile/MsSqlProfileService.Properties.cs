@@ -27,7 +27,7 @@ using System.Data.SqlClient;
 
 namespace SilverSim.Database.MsSql.Profile
 {
-    public sealed partial class MsSqlProfileService : ProfileServiceInterface.IPropertiesInterface
+    public sealed partial class MsSqlProfileService : IPropertiesInterface
     {
         ProfileProperties IPropertiesInterface.this[UGUI user]
         {

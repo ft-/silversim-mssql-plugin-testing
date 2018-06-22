@@ -27,21 +27,8 @@ using System.Data.SqlClient;
 
 namespace SilverSim.Database.MsSql.Groups
 {
-    public sealed partial class MsSqlGroupsService : GroupsServiceInterface.IGroupNoticesInterface
+    public sealed partial class MsSqlGroupsService : IGroupNoticesInterface
     {
-        GroupNotice IGroupNoticesInterface.this[UGUI requestingAgent, UUID groupNoticeID]
-        {
-            get
-            {
-                var notice = new GroupNotice();
-                if (!Notices.TryGetValue(requestingAgent, groupNoticeID, out notice))
-                {
-                    throw new KeyNotFoundException();
-                }
-                return notice;
-            }
-        }
-
         void IGroupNoticesInterface.Add(UGUI requestingAgent, GroupNotice notice)
         {
             var vals = new Dictionary<string, object>

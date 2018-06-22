@@ -27,7 +27,7 @@ using System.Data.SqlClient;
 
 namespace SilverSim.Database.MsSql.Groups
 {
-    public sealed partial class MsSqlGroupsService : GroupsServiceInterface.IGroupRolesInterface
+    public sealed partial class MsSqlGroupsService : IGroupRolesInterface
     {
         List<GroupRole> IGroupRolesInterface.this[UGUI requestingAgent, UGI group]
         {
@@ -79,19 +79,6 @@ namespace SilverSim.Database.MsSql.Groups
                     }
                 }
                 return roles;
-            }
-        }
-
-        GroupRole IGroupRolesInterface.this[UGUI requestingAgent, UGI group, UUID roleID]
-        {
-            get
-            {
-                GroupRole role;
-                if (!Roles.TryGetValue(requestingAgent, group, roleID, out role))
-                {
-                    throw new KeyNotFoundException();
-                }
-                return role;
             }
         }
 
