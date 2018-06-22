@@ -26,7 +26,7 @@ using System.Data.SqlClient;
 
 namespace SilverSim.Database.MsSql.Experience
 {
-    public sealed partial class MsSqlExperienceService : ExperienceServiceInterface.IExperienceKeyValueInterface
+    public sealed partial class MsSqlExperienceService : IExperienceKeyValueInterface
     {
         void IExperienceKeyValueInterface.Add(UUID experienceID, string key, string value)
         {

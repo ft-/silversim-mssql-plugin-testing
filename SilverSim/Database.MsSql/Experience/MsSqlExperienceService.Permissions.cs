@@ -26,7 +26,7 @@ using System.Data.SqlClient;
 
 namespace SilverSim.Database.MsSql.Experience
 {
-    public sealed partial class MsSqlExperienceService : ExperienceServiceInterface.IExperiencePermissionsInterface
+    public sealed partial class MsSqlExperienceService : IExperiencePermissionsInterface
     {
         Dictionary<UUID, bool> IExperiencePermissionsInterface.this[UGUI agent]
         {
