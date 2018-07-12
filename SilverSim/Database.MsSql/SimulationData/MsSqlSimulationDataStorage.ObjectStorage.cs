@@ -296,7 +296,7 @@ namespace SilverSim.Database.MsSql.SimulationData
                 UUID objgroupID = UUID.Zero;
                 m_Log.InfoFormat("Loading object groups for region ID {0}", regionID);
 
-                using (var cmd = new SqlCommand("DELETE FROM objects WHERE IsTemporary AND RegionID = @regionid", connection))
+                using (var cmd = new SqlCommand("DELETE FROM objects WHERE IsTemporary <> 0 AND RegionID = @regionid", connection))
                 {
                     cmd.Parameters.AddParameter("@regionid", regionID);
                     cmd.CommandTimeout = 3600;
