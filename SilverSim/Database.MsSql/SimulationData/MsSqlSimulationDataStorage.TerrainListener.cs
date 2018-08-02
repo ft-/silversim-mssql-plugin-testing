@@ -79,47 +79,76 @@ namespace SilverSim.Database.MsSql.SimulationData
                             continue;
                         }
 
-                        uint serialNumber = req.Serial;
-
-                        if (!knownSerialNumbers.Contains(req.ExtendedPatchID) || knownSerialNumbers[req.ExtendedPatchID] != req.Serial)
+                        if (req == null)
                         {
-                            updateRequestData.Add("PatchID" + updateRequestCount, req.ExtendedPatchID);
-                            updateRequestData.Add("TerrainData" + updateRequestCount, req.Serialization);
-                            ++updateRequestCount;
-                            knownSerialNumbers[req.ExtendedPatchID] = serialNumber;
-                        }
-
-                        if ((m_StorageTerrainRequestQueue.Count == 0 && updateRequestCount > 0) || updateRequestCount >= 256)
-                        {
-                            var updateCmd = new StringBuilder();
-                            try
+                            using (var connection = new SqlConnection(m_ConnectionString))
                             {
-                                using (var conn = new SqlConnection(m_ConnectionString))
+                                connection.Open();
+                                connection.InsideTransaction((transaction) =>
                                 {
-                                    conn.Open();
-                                    for (int i = 0; i < updateRequestCount; ++i)
+                                    using (var cmd = new SqlCommand("DELETE FROM defaultterrains WHERE RegionID=@regionid", connection)
                                     {
-                                        updateCmd.AppendFormat("UPDATE terrains SET TerrainData=@terraindata{0} WHERE RegionID = @regionid AND PatchID = @patchid{0};", i);
-                                        updateCmd.AppendFormat("INSERT INTO terrains (RegionID, PatchID, TerrainData) SELECT @regionid, @patchid{0}, @terraindata{0} WHERE NOT EXISTS " +
-                                                "(SELECT 1 FROM terrains WHERE RegionID = @regionid AND PatchID = @patchid{0});", i);
-                                    }
-                                    using (var cmd = new SqlCommand(updateCmd.ToString(), conn))
+                                        Transaction = transaction
+                                    })
                                     {
-                                        cmd.Parameters.AddParameter("@regionid", RegionID);
-                                        foreach (KeyValuePair<string, object> kvp in updateRequestData)
-                                        {
-                                            cmd.Parameters.AddParameter(kvp.Key, kvp.Value);
-                                        }
+                                        cmd.Parameters.AddParameter("@RegionID", RegionID);
                                         cmd.ExecuteNonQuery();
                                     }
-                                }
-                                updateRequestData.Clear();
-                                updateRequestCount = 0;
-                                Interlocked.Increment(ref m_ProcessedPatches);
+                                    using (var cmd = new SqlCommand("INSERT INTO defaultterrains (RegionID, PatchID, TerrainData) SELECT RegionID, PatchID, TerrainData FROM terrains WHERE RegionID=@regionid", connection)
+                                    {
+                                        Transaction = transaction
+                                    })
+                                    {
+                                        cmd.Parameters.AddParameter("@RegionID", RegionID);
+                                        cmd.ExecuteNonQuery();
+                                    }
+                                });
                             }
-                            catch (Exception e)
+                        }
+                        else
+                        {
+                            uint serialNumber = req.Serial;
+
+                            if (!knownSerialNumbers.Contains(req.ExtendedPatchID) || knownSerialNumbers[req.ExtendedPatchID] != req.Serial)
                             {
-                                m_Log.Error("Terrain store failed", e);
+                                updateRequestData.Add("PatchID" + updateRequestCount, req.ExtendedPatchID);
+                                updateRequestData.Add("TerrainData" + updateRequestCount, req.Serialization);
+                                ++updateRequestCount;
+                                knownSerialNumbers[req.ExtendedPatchID] = serialNumber;
+                            }
+
+                            if ((m_StorageTerrainRequestQueue.Count == 0 && updateRequestCount > 0) || updateRequestCount >= 256)
+                            {
+                                var updateCmd = new StringBuilder();
+                                try
+                                {
+                                    using (var conn = new SqlConnection(m_ConnectionString))
+                                    {
+                                        conn.Open();
+                                        for (int i = 0; i < updateRequestCount; ++i)
+                                        {
+                                            updateCmd.AppendFormat("UPDATE terrains SET TerrainData=@terraindata{0} WHERE RegionID = @regionid AND PatchID = @patchid{0};", i);
+                                            updateCmd.AppendFormat("INSERT INTO terrains (RegionID, PatchID, TerrainData) SELECT @regionid, @patchid{0}, @terraindata{0} WHERE NOT EXISTS " +
+                                                    "(SELECT 1 FROM terrains WHERE RegionID = @regionid AND PatchID = @patchid{0});", i);
+                                        }
+                                        using (var cmd = new SqlCommand(updateCmd.ToString(), conn))
+                                        {
+                                            cmd.Parameters.AddParameter("@regionid", RegionID);
+                                            foreach (KeyValuePair<string, object> kvp in updateRequestData)
+                                            {
+                                                cmd.Parameters.AddParameter(kvp.Key, kvp.Value);
+                                            }
+                                            cmd.ExecuteNonQuery();
+                                        }
+                                    }
+                                    updateRequestData.Clear();
+                                    updateRequestCount = 0;
+                                    Interlocked.Increment(ref m_ProcessedPatches);
+                                }
+                                catch (Exception e)
+                                {
+                                    m_Log.Error("Terrain store failed", e);
+                                }
                             }
                         }
                     }
