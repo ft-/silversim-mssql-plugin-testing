@@ -213,7 +213,8 @@ namespace SilverSim.Database.MsSql.SimulationData
                 IsUnSitTargetActive = (bool)dbReader["IsUnSitTargetActive"],
                 UnSitTargetOffset = dbReader.GetVector3("UnSitTargetOffset"),
                 UnSitTargetOrientation = dbReader.GetQuaternion("UnSitTargetOrientation"),
-                LocalizationSerialization = dbReader.GetBytes("LocalizationData")
+                LocalizationSerialization = dbReader.GetBytes("LocalizationData"),
+                Damage = (double)dbReader["Damage"]
             };
 
             using (var ms = new MemoryStream(dbReader.GetBytes("DynAttrs")))
