@@ -415,6 +415,7 @@ namespace SilverSim.Database.MsSql.SimulationData
                 ["PayPrice3"] = objgroup.PayPrice3,
                 ["PayPrice4"] = objgroup.PayPrice4,
                 ["AttachedPos"] = objgroup.AttachedPos,
+                ["AttachedRot"] = objgroup.AttachedRot,
                 ["AttachPoint"] = objgroup.AttachPoint,
                 ["IsIncludedInSearch"] = objgroup.IsIncludedInSearch,
                 ["RezzingObjectID"] = objgroup.RezzingObjectID
