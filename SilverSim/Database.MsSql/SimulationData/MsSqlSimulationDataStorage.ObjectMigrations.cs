@@ -213,8 +213,6 @@ namespace SilverSim.Database.MsSql.SimulationData
             new AddColumn<double>("Damage") { IsNullAllowed = false, Default = 0.0 },
             new TableRevision(26),
             new DropColumn("Slice"),
-            new TableRevision(27),
-            new AddColumn<UUID>("DebitPermissionKey") { IsNullAllowed = false, Default = UUID.Zero },
             #endregion
 
             #region Table primitems
@@ -266,6 +264,8 @@ namespace SilverSim.Database.MsSql.SimulationData
             new DropColumn("ParentFolderID"),
             new TableRevision(10),
             new AddColumn<byte[]>("CollisionFilterData") { Cardinality = 255 },
+            new TableRevision(11),
+            new AddColumn<UUID>("DebitPermissionKey") { IsNullAllowed = false, Default = UUID.Zero },
             #endregion
         };
     }
