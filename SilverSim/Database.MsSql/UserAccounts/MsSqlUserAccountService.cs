@@ -645,7 +645,6 @@ namespace SilverSim.Database.MsSql.UserAccounts
             }
         }
 
-
         public override void SetEmail(UUID scopeID, UUID accountID, string email)
         {
             if (email == null)
