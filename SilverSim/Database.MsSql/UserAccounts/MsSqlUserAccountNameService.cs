@@ -116,6 +116,16 @@ namespace SilverSim.Database.MsSql.UserAccounts
             m_HomeURI = new Uri(loader.HomeURI);
         }
 
+        public override bool ContainsKey(UGUI input)
+        {
+            UGUI data;
+            if(TryGetValue(input.ID, out data))
+            {
+                return data.EqualsGrid(input);
+            }
+            return false;
+        }
+
         public override bool TryGetValue(UUID key, out UGUIWithName uui)
         {
             uui = null;
