@@ -151,7 +151,7 @@ namespace SilverSim.Database.MsSql.Groups
             m_AvatarNameService = new AggregatingAvatarNameService(avatarNameServices);
         }
 
-        public void Remove(UUID scopeID, UUID accountID)
+        public void Remove(UUID accountID)
         {
             using (var conn = new SqlConnection(m_ConnectionString))
             {

@@ -259,7 +259,7 @@ namespace SilverSim.Database.MsSql.Experience
             }
         }
 
-        public void Remove(UUID scopeID, UUID accountID)
+        public void Remove(UUID accountID)
         {
             using (var conn = new SqlConnection(m_ConnectionString))
             {

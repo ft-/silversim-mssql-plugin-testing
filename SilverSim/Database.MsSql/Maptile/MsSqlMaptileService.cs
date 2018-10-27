@@ -57,7 +57,10 @@ namespace SilverSim.Database.MsSql.Maptile
             new AddColumn<byte[]>("Data") { IsLong = true },
             new PrimaryKeyInfo("LocX", "LocY", "ZoomLevel"),
             new TableRevision(2),
-            new PrimaryKeyInfo("LocX", "LocY", "ZoomLevel", "ScopeID")
+            new PrimaryKeyInfo("LocX", "LocY", "ZoomLevel", "ScopeID"),
+            new TableRevision(3),
+            new PrimaryKeyInfo("LocX", "LocY", "ZoomLevel"),
+            new DropColumn("ScopeID")
         };
 
         public void ProcessMigrations()
@@ -82,7 +85,7 @@ namespace SilverSim.Database.MsSql.Maptile
             }
         }
 
-        public override bool TryGetValue(UUID scopeid, GridVector location, int zoomlevel, out MaptileData data)
+        public override bool TryGetValue(GridVector location, int zoomlevel, out MaptileData data)
         {
             data = default(MaptileData);
             using (var connection = new SqlConnection(m_ConnectionString))
@@ -100,7 +103,6 @@ namespace SilverSim.Database.MsSql.Maptile
                             data = new MaptileData();
                             data.Location.X = (uint)(int)reader["LocX"];
                             data.Location.Y = (uint)(int)reader["LocY"];
-                            data.ScopeID = reader.GetUUID("ScopeID");
                             data.LastUpdate = reader.GetDate("LastUpdate");
                             data.ContentType = (string)reader["ContentType"];
                             data.ZoomLevel = (int)reader["ZoomLevel"];
@@ -122,42 +124,39 @@ namespace SilverSim.Database.MsSql.Maptile
                 {
                     ["LocX"] = data.Location.X,
                     ["LocY"] = data.Location.Y,
-                    ["ScopeID"] = data.ScopeID,
                     ["LastUpdate"] = data.LastUpdate,
                     ["ContentType"] = data.ContentType,
                     ["ZoomLevel"] = data.ZoomLevel,
                     ["Data"] = data.Data
                 };
-                connection.ReplaceInto("maptiles", vals, new string[] { "LocX", "LocY", "ZoomLevel", "ScopeID" });
+                connection.ReplaceInto("maptiles", vals, new string[] { "LocX", "LocY", "ZoomLevel" });
             }
         }
 
-        public override bool Remove(UUID scopeid, GridVector location, int zoomlevel)
+        public override bool Remove(GridVector location, int zoomlevel)
         {
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("DELETE FROM maptiles WHERE LocX = @locx AND LocY = @locy AND ZoomLevel = @zoomlevel AND ScopeID = @scopeid", connection))
+                using (var cmd = new SqlCommand("DELETE FROM maptiles WHERE LocX = @locx AND LocY = @locy AND ZoomLevel = @zoomlevel", connection))
                 {
                     cmd.Parameters.AddParameter("@locx", location.X);
                     cmd.Parameters.AddParameter("@locy", location.Y);
                     cmd.Parameters.AddParameter("@zoomlevel", zoomlevel);
-                    cmd.Parameters.AddParameter("@scopeid", scopeid);
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
         }
 
-        public override List<MaptileInfo> GetUpdateTimes(UUID scopeid, GridVector minloc, GridVector maxloc, int zoomlevel)
+        public override List<MaptileInfo> GetUpdateTimes(GridVector minloc, GridVector maxloc, int zoomlevel)
         {
             var infos = new List<MaptileInfo>();
 
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
-                using (var cmd = new SqlCommand("SELECT LocX, LocY, LastUpdate FROM maptiles WHERE ScopeID = @scopeid AND ZoomLevel = @zoomlevel AND LocX >= @locxlow AND LocY >= @locylow AND LocX <= @locxhigh AND LocY <= @locyhigh", connection))
+                using (var cmd = new SqlCommand("SELECT LocX, LocY, LastUpdate FROM maptiles WHERE ZoomLevel = @zoomlevel AND LocX >= @locxlow AND LocY >= @locylow AND LocX <= @locxhigh AND LocY <= @locyhigh", connection))
                 {
-                    cmd.Parameters.AddParameter("@scopeid", scopeid);
                     cmd.Parameters.AddParameter("@zoomlevel", zoomlevel);
                     cmd.Parameters.AddParameter("@locxlow", minloc.X);
                     cmd.Parameters.AddParameter("@locylow", minloc.Y);
@@ -171,7 +170,6 @@ namespace SilverSim.Database.MsSql.Maptile
                             {
                                 Location = new GridVector { X = (uint)(int)reader["LocX"], Y = (uint)(int)reader["LocY"] },
                                 LastUpdate = reader.GetDate("LastUpdate"),
-                                ScopeID = scopeid,
                                 ZoomLevel = zoomlevel
                             };
                             infos.Add(info);

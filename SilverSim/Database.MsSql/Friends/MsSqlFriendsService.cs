@@ -146,7 +146,7 @@ namespace SilverSim.Database.MsSql.Friends
             }
         }
 
-        public void Remove(UUID scopeID, UUID accountID)
+        public void Remove(UUID accountID)
         {
             using (var connection = new SqlConnection(m_ConnectionString))
             {

@@ -124,7 +124,7 @@ namespace SilverSim.Database.MsSql.OfflineIM
             new AddColumn<Date>("Timestamp") {IsNullAllowed = false }
         };
 
-        public void Remove(UUID scopeID, UUID accountID)
+        public void Remove(UUID accountID)
         {
             using (var connection = new SqlConnection(m_ConnectionString))
             {

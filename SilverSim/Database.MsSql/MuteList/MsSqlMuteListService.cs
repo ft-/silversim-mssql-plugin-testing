@@ -79,7 +79,7 @@ namespace SilverSim.Database.MsSql.MuteList
             return res;
         }
 
-        public void Remove(UUID scopeID, UUID accountID)
+        public void Remove(UUID accountID)
         {
             using (var conn = new SqlConnection(m_ConnectionString))
             {

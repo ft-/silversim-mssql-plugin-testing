@@ -86,18 +86,11 @@ namespace SilverSim.Database.MsSql.Presence
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                try
-                {
-                    conn.ReplaceInto("npcpresence", post, new string[] { "NpcID" });
-                }
-                catch
-                {
-                    throw new PresenceUpdateFailedException();
-                }
+                conn.ReplaceInto("npcpresence", post, new string[] { "NpcID" });
             }
         }
 
-        public override void Remove(UUID scopeID, UUID npcID)
+        public override void Remove(UUID npcID)
         {
             using (var conn = new SqlConnection(m_ConnectionString))
             {
