@@ -354,7 +354,7 @@ namespace SilverSim.Database.MsSql.UserSession
                         ["isexpiring"] = true,
                         ["expirydata"] = Date.Now.Add(span)
                     };
-                    conn.ReplaceInto("usersessiondata", vals, new string[] { "sessionid" }, transaction);
+                    conn.ReplaceInto("usersessiondata", vals, new string[] { "sessionid", "assoc", "varname" }, transaction);
                 });
             }
         }
