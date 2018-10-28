@@ -19,7 +19,6 @@
 // obligated to do so. If you do not wish to do so, delete this
 // exception statement from your version.
 
-
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -30,13 +29,16 @@ using MsSqlMigrationException = SilverSim.Database.MsSql.MsSqlUtilities.MsSqlMig
 
 namespace SilverSim.Database.MsSql._Migration
 {
-    public static class Migrator
+    public static partial class Migrator
     {
-        static void ExecuteStatement(SqlConnection conn, string command, ILog log)
+        static void ExecuteStatement(SqlConnection conn, string command, ILog log, SqlTransaction transaction)
         {
             try
             {
-                using (var cmd = new SqlCommand(command, conn))
+                using (var cmd = new SqlCommand(command, conn)
+                {
+                    Transaction = transaction
+                })
                 {
                     cmd.ExecuteNonQuery();
                 }
@@ -55,7 +57,8 @@ namespace SilverSim.Database.MsSql._Migration
             Dictionary<string, IColumnInfo> fields,
             Dictionary<string, NamedKeyInfo> tableKeys,
             uint tableRevision,
-            ILog log)
+            ILog log,
+            SqlTransaction transaction)
         {
             var b = new SqlCommandBuilder();
             log.InfoFormat("Creating table '{0}' at revision {1}", table.Name, tableRevision);
@@ -80,14 +83,14 @@ namespace SilverSim.Database.MsSql._Migration
             cmd.AppendFormat("EXEC sys.{2} @name=N'table_revision', " +
             "@value = N'{1}', @level0type = N'SCHEMA', @level0name = N'dbo'," +
             "@level1type = N'TABLE', @level1name = N'{0}';", table.Name, tableRevision, "sp_addextendedproperty");
-            ExecuteStatement(conn, cmd.ToString(), log);
+            ExecuteStatement(conn, cmd.ToString(), log, transaction);
         }
 
-        private static void CommentTable(this SqlConnection conn, string tablename, uint revision, ILog log)
+        private static void CommentTable(this SqlConnection conn, string tablename, uint revision, ILog log, SqlTransaction transaction)
         {
             ExecuteStatement(conn, string.Format("EXEC sys.{2} @name=N'table_revision', " +
             "@value = N'{1}', @level0type = N'SCHEMA', @level0name = N'dbo'," +
-            "@level1type = N'TABLE', @level1name = N'{0}';", tablename, revision, revision == 1 ? "sp_addextendedproperty" : "sp_updateextendedproperty"), log);
+            "@level1type = N'TABLE', @level1name = N'{0}';", tablename, revision, revision == 1 ? "sp_addextendedproperty" : "sp_updateextendedproperty"), log, transaction);
         }
 
         public static void MigrateTables(this SqlConnection conn, IMigrationElement[] processTable, ILog log)
@@ -100,6 +103,7 @@ namespace SilverSim.Database.MsSql._Migration
             uint processingTableRevision = 0;
             uint currentAtRevision = 0;
             SqlTransaction insideTransaction = null;
+            m_MaxAvailableMigrationRevision = 1;
 
             if (processTable.Length == 0)
             {
@@ -111,15 +115,18 @@ namespace SilverSim.Database.MsSql._Migration
                 throw new MsSqlMigrationException("First entry must be table name");
             }
 
+            bool skipToNext = false;
+
             foreach (IMigrationElement migration in processTable)
             {
                 Type migrationType = migration.GetType();
 
                 if (typeof(SqlTable) == migrationType)
                 {
+                    skipToNext = false;
                     if (insideTransaction != null)
                     {
-                        CommentTable(conn, table.Name, processingTableRevision, log);
+                        CommentTable(conn, table.Name, processingTableRevision, log, insideTransaction);
                         insideTransaction.Commit();
                         insideTransaction = null;
                     }
@@ -134,7 +141,7 @@ namespace SilverSim.Database.MsSql._Migration
                                 tableFields,
                                 tableKeys,
                                 processingTableRevision,
-                                log);
+                                log, insideTransaction);
                         }
                         tableFields.Clear();
                         tableKeys.Clear();
@@ -143,12 +150,26 @@ namespace SilverSim.Database.MsSql._Migration
                     table = (SqlTable)migration;
                     currentAtRevision = conn.GetTableRevision(table.Name);
                     processingTableRevision = 1;
+                    if (currentAtRevision != 0 && m_DeleteTablesBefore)
+                    {
+                        log.Info($"Dropping table {table.Name}");
+                        ExecuteStatement(conn, $"DROP TABLE {table.Name}", log, insideTransaction);
+                        currentAtRevision = 0;
+                    }
+                }
+                else if (skipToNext)
+                {
+                    /* skip processing */
+                    if (typeof(TableRevision) == migrationType)
+                    {
+                        m_MaxAvailableMigrationRevision = Math.Max(m_MaxAvailableMigrationRevision, ((TableRevision)migration).Revision);
+                    }
                 }
                 else if (typeof(TableRevision) == migrationType)
                 {
                     if (insideTransaction != null)
                     {
-                        CommentTable(conn, table.Name, processingTableRevision, log);
+                        CommentTable(conn, table.Name, processingTableRevision, log, insideTransaction);
                         insideTransaction.Commit();
                         insideTransaction = null;
                         if (currentAtRevision != 0)
@@ -158,6 +179,14 @@ namespace SilverSim.Database.MsSql._Migration
                     }
 
                     var rev = (TableRevision)migration;
+                    m_MaxAvailableMigrationRevision = Math.Max(m_MaxAvailableMigrationRevision, rev.Revision);
+                    if (processingTableRevision == m_StopAtMigrationRevision)
+                    {
+                        /* advance to next table for testing */
+                        skipToNext = true;
+                        continue;
+                    }
+
                     if (rev.Revision != processingTableRevision + 1)
                     {
                         throw new MsSqlMigrationException(string.Format("Invalid TableRevision entry. Expected {0}. Got {1}", processingTableRevision + 1, rev.Revision));
@@ -196,7 +225,7 @@ namespace SilverSim.Database.MsSql._Migration
                         tableFields.Add(columnInfo.Name, columnInfo);
                         if (insideTransaction != null)
                         {
-                            ExecuteStatement(conn, columnInfo.Sql(table.Name), log);
+                            ExecuteStatement(conn, columnInfo.Sql(table.Name), log, insideTransaction);
                         }
                     }
                     else if (interfaces.Contains(typeof(IChangeColumn)))
@@ -216,7 +245,7 @@ namespace SilverSim.Database.MsSql._Migration
                         }
                         if (insideTransaction != null)
                         {
-                            ExecuteStatement(conn, columnInfo.Sql(table.Name, oldColumn.FieldType), log);
+                            ExecuteStatement(conn, columnInfo.Sql(table.Name, oldColumn.FieldType), log, insideTransaction);
                         }
                         if (columnInfo.OldName?.Length != 0)
                         {
@@ -253,7 +282,7 @@ namespace SilverSim.Database.MsSql._Migration
                         var columnInfo = (DropColumn)migration;
                         if (insideTransaction != null)
                         {
-                            ExecuteStatement(conn, columnInfo.Sql(table.Name, tableFields[columnInfo.Name].FieldType), log);
+                            ExecuteStatement(conn, columnInfo.Sql(table.Name, tableFields[columnInfo.Name].FieldType), log, insideTransaction);
                         }
                         tableFields.Remove(columnInfo.Name);
                     }
@@ -261,29 +290,29 @@ namespace SilverSim.Database.MsSql._Migration
                     {
                         if (null != primaryKey && insideTransaction != null)
                         {
-                            ExecuteStatement(conn, "ALTER TABLE " + b.QuoteIdentifier(table.Name) + " DROP PRIMARY KEY;", log);
+                            ExecuteStatement(conn, "ALTER TABLE " + b.QuoteIdentifier(table.Name) + " DROP PRIMARY KEY;", log, insideTransaction);
                         }
-                        primaryKey = (PrimaryKeyInfo)migration;
+                        primaryKey = new PrimaryKeyInfo((PrimaryKeyInfo)migration);
                         if (insideTransaction != null)
                         {
-                            ExecuteStatement(conn, primaryKey.Sql(table.Name), log);
+                            ExecuteStatement(conn, primaryKey.Sql(table.Name), log, insideTransaction);
                         }
                     }
                     else if (migrationType == typeof(DropPrimaryKeyinfo))
                     {
                         if (null != primaryKey && insideTransaction != null)
                         {
-                            ExecuteStatement(conn, ((DropPrimaryKeyinfo)migration).Sql(table.Name), log);
+                            ExecuteStatement(conn, ((DropPrimaryKeyinfo)migration).Sql(table.Name), log, insideTransaction);
                         }
                         primaryKey = null;
                     }
                     else if (migrationType == typeof(NamedKeyInfo))
                     {
                         var namedKey = (NamedKeyInfo)migration;
-                        tableKeys.Add(namedKey.Name, namedKey);
+                        tableKeys.Add(namedKey.Name, new NamedKeyInfo(namedKey));
                         if (insideTransaction != null)
                         {
-                            ExecuteStatement(conn, namedKey.Sql(table.Name), log);
+                            ExecuteStatement(conn, namedKey.Sql(table.Name), log, insideTransaction);
                         }
                     }
                     else if (migrationType == typeof(DropNamedKeyInfo))
@@ -292,7 +321,7 @@ namespace SilverSim.Database.MsSql._Migration
                         tableKeys.Remove(namedKey.Name);
                         if (insideTransaction != null)
                         {
-                            ExecuteStatement(conn, namedKey.Sql(table.Name), log);
+                            ExecuteStatement(conn, namedKey.Sql(table.Name), log, insideTransaction);
                         }
                     }
                     else
@@ -304,12 +333,13 @@ namespace SilverSim.Database.MsSql._Migration
 
             if (insideTransaction != null)
             {
-                CommentTable(conn, table.Name, processingTableRevision, log);
+                CommentTable(conn, table.Name, processingTableRevision, log, insideTransaction);
                 insideTransaction.Commit();
                 if (currentAtRevision != 0)
                 {
                     currentAtRevision = processingTableRevision;
                 }
+                insideTransaction = null;
             }
 
             if (null != table && 0 != processingTableRevision && currentAtRevision == 0)
@@ -320,7 +350,7 @@ namespace SilverSim.Database.MsSql._Migration
                     tableFields,
                     tableKeys,
                     processingTableRevision,
-                    log);
+                    log, insideTransaction);
             }
         }
     }

@@ -56,6 +56,15 @@ namespace SilverSim.Database.MsSql._Migration
             FieldNames = fieldNames;
         }
 
+        public PrimaryKeyInfo(PrimaryKeyInfo src)
+        {
+            FieldNames = new string[src.FieldNames.Length];
+            for (int i = 0; i < src.FieldNames.Length; ++i)
+            {
+                FieldNames[i] = src.FieldNames[i];
+            }
+        }
+
         public string FieldSql()
         {
             SqlCommandBuilder b = new SqlCommandBuilder();
@@ -85,6 +94,17 @@ namespace SilverSim.Database.MsSql._Migration
         {
             Name = name;
             FieldNames = fieldNames;
+        }
+
+        public NamedKeyInfo(NamedKeyInfo src)
+        {
+            IsUnique = src.IsUnique;
+            Name = src.Name;
+            FieldNames = new string[src.FieldNames.Length];
+            for (int i = 0; i < src.FieldNames.Length; ++i)
+            {
+                FieldNames[i] = src.FieldNames[i];
+            }
         }
 
         private string FieldSql()
@@ -641,15 +661,18 @@ namespace SilverSim.Database.MsSql._Migration
                 }
             }
 
+            string sqlRename = string.Empty;
             foreach (KeyValuePair<string, string> kvp in newFields)
             {
                 string sqlPart;
                 if (oldFields.Contains(kvp.Key))
                 {
                     string oldName = OldName + kvp.Key.Substring(Name.Length);
-                    sqlPart = string.Format("ALTER COLUMN {0} {1}",
-                        b.QuoteIdentifier(oldName),
-                        b.QuoteIdentifier(kvp.Key));
+                    if (oldName != kvp.Key)
+                    {
+                        sqlRename += $"EXEC sp_rename @objname='{tableName + "." + oldName}', @newname='{kvp.Key}',@objtype='COLUMN';";
+                    }
+                    sqlPart = "ALTER COLUMN " + b.QuoteIdentifier(kvp.Key);
                 }
                 else
                 {
@@ -659,7 +682,7 @@ namespace SilverSim.Database.MsSql._Migration
                 sqlParts.Add(sqlPart);
             }
 
-            return "ALTER TABLE " + b.QuoteIdentifier(tableName) + " " + string.Join(",", sqlParts) + ";";
+            return sqlRename + "ALTER TABLE " + b.QuoteIdentifier(tableName) + " " + string.Join(",", sqlParts) + ";";
         }
     }
     #endregion
