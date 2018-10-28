@@ -171,7 +171,7 @@ namespace SilverSim.Database.MsSql.UserSession
                             ["value"] = value,
                             ["isexpiring"] = false
                         };
-                        conn.ReplaceInto("usersessiondata", vals, new string[] { "sessionid" }, transaction);
+                        conn.ReplaceInto("usersessiondata", vals, new string[] { "sessionid", "assoc", "varname" }, transaction);
                     });
                 }
             }
@@ -257,11 +257,26 @@ namespace SilverSim.Database.MsSql.UserSession
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("DELETE FROM usersessions WHERE sessionid=@sessionid", conn))
+                return conn.InsideTransaction((transaction) =>
                 {
-                    cmd.Parameters.AddParameter("@sessionid", sessionID);
-                    return cmd.ExecuteNonQuery() > 0;
-                }
+                    using (var cmd = new SqlCommand("DELETE FROM usersessiondata WHERE sessionid=@sessionid", conn)
+                    {
+                        Transaction = transaction
+                    })
+                    {
+                        cmd.Parameters.AddParameter("@sessionid", sessionID);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    using (var cmd = new SqlCommand("DELETE FROM usersessions WHERE sessionid=@sessionid", conn)
+                    {
+                        Transaction = transaction
+                    })
+                    {
+                        cmd.Parameters.AddParameter("@sessionid", sessionID);
+                        return cmd.ExecuteNonQuery() > 0;
+                    }
+                });
             }
         }
 
@@ -439,7 +454,7 @@ namespace SilverSim.Database.MsSql.UserSession
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM usersessiondata WHERE sessionid=@sessionid AND assoc=@assoc AND varname=@varname AND (NOT isexpiring OR expirydate > @now)", conn))
+                using (var cmd = new SqlCommand("SELECT * FROM usersessiondata WHERE sessionid=@sessionid AND assoc=@assoc AND varname=@varname AND (isexpiring=0 OR expirydate > @now)", conn))
                 {
                     cmd.Parameters.AddParameter("@sessionid", sessionID);
                     cmd.Parameters.AddParameter("@assoc", assoc);
@@ -478,7 +493,7 @@ namespace SilverSim.Database.MsSql.UserSession
                 conn.Open();
                 success = conn.InsideTransaction((transaction) =>
                 {
-                    using (var cmd = new SqlCommand("SELECT * FROM usersessiondata WHERE sessionid = @sessionid AND assoc = @assoc AND varname = @varname AND (NOT isexpiring OR expirydate >= @now)", conn)
+                    using (var cmd = new SqlCommand("SELECT * FROM usersessiondata WHERE sessionid = @sessionid AND assoc = @assoc AND varname = @varname AND (isexpiring=0 OR expirydate >= @now)", conn)
                     {
                         Transaction = transaction
                     })
@@ -486,6 +501,7 @@ namespace SilverSim.Database.MsSql.UserSession
                         cmd.Parameters.AddParameter("@sessionid", sessionID);
                         cmd.Parameters.AddParameter("@assoc", assoc);
                         cmd.Parameters.AddParameter("@varname", varname);
+                        cmd.Parameters.AddParameter("@now", Date.Now);
                         using (var reader = cmd.ExecuteReader())
                         {
                             if (!reader.Read())
