@@ -146,7 +146,11 @@ namespace SilverSim.Database.MsSql._Migration
             Name = name;
         }
 
-        public string Sql(string tableName) => "DROP " + new SqlCommandBuilder().QuoteIdentifier(tableName + "_" + Name) + ";";
+        public string Sql(string tableName)
+        {
+            var t = new SqlCommandBuilder();
+            return $"DROP INDEX {t.QuoteIdentifier(tableName + "_" + Name)} ON {t.QuoteIdentifier(tableName)};";
+        }
     }
 
     #region Table fields
@@ -171,75 +175,81 @@ namespace SilverSim.Database.MsSql._Migration
     {
         public static Dictionary<string, string> DropDefault(this IColumnInfo colInfo, string tableName)
         {
-            string baseDefaultName = $"DF_{tableName}_{colInfo.Name}";
+            IChangeColumn changeColumn = colInfo as IChangeColumn;
+            string fieldName = colInfo.Name;
+            if (changeColumn != null && !string.IsNullOrEmpty(changeColumn.OldName))
+            {
+                fieldName = changeColumn.OldName;
+            }
+            string baseDefaultName = $"DF_{tableName}_{fieldName}";
             var result = new Dictionary<string, string>();
             var t = new SqlCommandBuilder();
             Type f = colInfo.FieldType;
-            string cmdgen = "ALTER TABLE {0} DROP CONSTRAINT {1};";
+            List<string> fields = new List<string>();
 
             if (f == typeof(Vector3))
             {
-                result.Add(colInfo.Name + "X", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "X")));
-                result.Add(colInfo.Name + "Y", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Y")));
-                result.Add(colInfo.Name + "Z", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Z")));
-                return result;
+                fields.Add("X");
+                fields.Add("Y");
+                fields.Add("Z");
             }
             else if (f == typeof(GridVector))
             {
-                result.Add(colInfo.Name + "X", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "X")));
-                result.Add(colInfo.Name + "Y", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Y")));
-                return result;
+                fields.Add("X");
+                fields.Add("Y");
             }
             else if (f == typeof(Vector4))
             {
-                result.Add(colInfo.Name + "X", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "X")));
-                result.Add(colInfo.Name + "Y", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Y")));
-                result.Add(colInfo.Name + "Z", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Z")));
-                result.Add(colInfo.Name + "W", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "W")));
+                fields.Add("X");
+                fields.Add("Y");
+                fields.Add("Z");
+                fields.Add("W");
                 return result;
             }
             else if (f == typeof(Quaternion))
             {
-                result.Add(colInfo.Name + "X", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "X")));
-                result.Add(colInfo.Name + "Y", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Y")));
-                result.Add(colInfo.Name + "Z", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Z")));
-                result.Add(colInfo.Name + "W", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "W")));
+                fields.Add("X");
+                fields.Add("Y");
+                fields.Add("Z");
+                fields.Add("W");
                 return result;
             }
             else if (f == typeof(EnvironmentController.WLVector2))
             {
-                result.Add(colInfo.Name + "X", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "X")));
-                result.Add(colInfo.Name + "Y", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Y")));
-                return result;
+                fields.Add("X");
+                fields.Add("Y");
             }
             else if (f == typeof(EnvironmentController.WLVector4))
             {
-                result.Add(colInfo.Name + "Red", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Red")));
-                result.Add(colInfo.Name + "Green", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Green")));
-                result.Add(colInfo.Name + "Blue", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Blue")));
-                result.Add(colInfo.Name + "Value", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Value")));
-                return result;
+                fields.Add("Red");
+                fields.Add("Green");
+                fields.Add("Blue");
+                fields.Add("Value");
             }
             else if (f == typeof(Color))
             {
-                result.Add(colInfo.Name + "Red", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Red")));
-                result.Add(colInfo.Name + "Green", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Green")));
-                result.Add(colInfo.Name + "Blue", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Blue")));
+                fields.Add("Red");
+                fields.Add("Green");
+                fields.Add("Blue");
                 return result;
             }
             else if (f == typeof(ColorAlpha))
             {
-                result.Add(colInfo.Name + "Red", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Red")));
-                result.Add(colInfo.Name + "Green", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Green")));
-                result.Add(colInfo.Name + "Blue", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Blue")));
-                result.Add(colInfo.Name + "Alpha", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Alpha")));
-                return result;
+                fields.Add("Red");
+                fields.Add("Green");
+                fields.Add("Blue");
+                fields.Add("Alpha");
             }
             else
             {
-                result.Add(colInfo.Name, string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName)));
-                return result;
+                fields.Add(string.Empty);
             }
+
+            foreach (string field in fields)
+            {
+                result.Add(field, $"IF EXISTS(SELECT Name FROM SYS.DEFAULT_CONSTRAINTS WHERE PARENT_OBJECT_ID = OBJECT_ID({tableName.ToMsSqlQuoted()}) AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = {(colInfo.Name + field).ToMsSqlQuoted()} AND object_id = OBJECT_ID({tableName.ToMsSqlQuoted()}))) ALTER TABLE {t.QuoteIdentifier(tableName)} DROP CONSTRAINT {t.QuoteIdentifier(baseDefaultName + field)};");
+            }
+            return result;
         }
 
         public static Dictionary<string, string> AddDefault(this IColumnInfo colInfo, string tableName)
@@ -323,8 +333,8 @@ namespace SilverSim.Database.MsSql._Migration
                     }
 
                     var v = (EnvironmentController.WLVector2)colInfo.Default;
-                    result.Add(colInfo.Name + "X", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.X, t.QuoteIdentifier(colInfo.Name + "X"), t.QuoteIdentifier(baseDefaultName + "X")));
-                    result.Add(colInfo.Name + "Y", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Y, t.QuoteIdentifier(colInfo.Name + "Y"), t.QuoteIdentifier(baseDefaultName + "Y")));
+                    result.Add(colInfo.Name + "X", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.X, t.QuoteIdentifier(colInfo.Name + "X"), t.QuoteIdentifier(baseDefaultName + "X")));
+                    result.Add(colInfo.Name + "Y", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Y, t.QuoteIdentifier(colInfo.Name + "Y"), t.QuoteIdentifier(baseDefaultName + "Y")));
                 }
                 return result;
             }
@@ -338,10 +348,10 @@ namespace SilverSim.Database.MsSql._Migration
                     }
 
                     var v = (EnvironmentController.WLVector4)colInfo.Default;
-                    result.Add(colInfo.Name + "Red", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.X, t.QuoteIdentifier(colInfo.Name + "Red"), t.QuoteIdentifier(baseDefaultName + "Red")));
-                    result.Add(colInfo.Name + "Green", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Y, t.QuoteIdentifier(colInfo.Name + "Green"), t.QuoteIdentifier(baseDefaultName + "Green")));
-                    result.Add(colInfo.Name + "Blue", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Z, t.QuoteIdentifier(colInfo.Name + "Blue"), t.QuoteIdentifier(baseDefaultName + "Blue")));
-                    result.Add(colInfo.Name + "Value", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.W, t.QuoteIdentifier(colInfo.Name + "Value"), t.QuoteIdentifier(baseDefaultName + "Value")));
+                    result.Add(colInfo.Name + "Red", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.X, t.QuoteIdentifier(colInfo.Name + "Red"), t.QuoteIdentifier(baseDefaultName + "Red")));
+                    result.Add(colInfo.Name + "Green", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Y, t.QuoteIdentifier(colInfo.Name + "Green"), t.QuoteIdentifier(baseDefaultName + "Green")));
+                    result.Add(colInfo.Name + "Blue", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Z, t.QuoteIdentifier(colInfo.Name + "Blue"), t.QuoteIdentifier(baseDefaultName + "Blue")));
+                    result.Add(colInfo.Name + "Value", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.W, t.QuoteIdentifier(colInfo.Name + "Value"), t.QuoteIdentifier(baseDefaultName + "Value")));
                 }
                 return result;
             }
@@ -355,9 +365,9 @@ namespace SilverSim.Database.MsSql._Migration
                     }
 
                     var v = (Color)colInfo.Default;
-                    result.Add(colInfo.Name + "Red", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.R, t.QuoteIdentifier(colInfo.Name + "Red"), t.QuoteIdentifier(baseDefaultName + "Red")));
-                    result.Add(colInfo.Name + "Green", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.G, t.QuoteIdentifier(colInfo.Name + "Green"), t.QuoteIdentifier(baseDefaultName + "Green")));
-                    result.Add(colInfo.Name + "Blue", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.B, t.QuoteIdentifier(colInfo.Name + "Blue"), t.QuoteIdentifier(baseDefaultName + "Blue")));
+                    result.Add(colInfo.Name + "Red", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.R, t.QuoteIdentifier(colInfo.Name + "Red"), t.QuoteIdentifier(baseDefaultName + "Red")));
+                    result.Add(colInfo.Name + "Green", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.G, t.QuoteIdentifier(colInfo.Name + "Green"), t.QuoteIdentifier(baseDefaultName + "Green")));
+                    result.Add(colInfo.Name + "Blue", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.B, t.QuoteIdentifier(colInfo.Name + "Blue"), t.QuoteIdentifier(baseDefaultName + "Blue")));
                 }
                 return result;
             }
@@ -371,10 +381,10 @@ namespace SilverSim.Database.MsSql._Migration
                     }
 
                     var v = (ColorAlpha)colInfo.Default;
-                    result.Add(colInfo.Name + "Red", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.R, t.QuoteIdentifier(colInfo.Name + "Red"), t.QuoteIdentifier(baseDefaultName + "Red")));
-                    result.Add(colInfo.Name + "Green", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.G, t.QuoteIdentifier(colInfo.Name + "Green"), t.QuoteIdentifier(baseDefaultName + "Green")));
-                    result.Add(colInfo.Name + "Blue", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.B, t.QuoteIdentifier(colInfo.Name + "Blue"), t.QuoteIdentifier(baseDefaultName + "Blue")));
-                    result.Add(colInfo.Name + "Alpha", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.A, t.QuoteIdentifier(colInfo.Name + "Alpha"), t.QuoteIdentifier(baseDefaultName + "Alpha")));
+                    result.Add(colInfo.Name + "Red", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.R, t.QuoteIdentifier(colInfo.Name + "Red"), t.QuoteIdentifier(baseDefaultName + "Red")));
+                    result.Add(colInfo.Name + "Green", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.G, t.QuoteIdentifier(colInfo.Name + "Green"), t.QuoteIdentifier(baseDefaultName + "Green")));
+                    result.Add(colInfo.Name + "Blue", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.B, t.QuoteIdentifier(colInfo.Name + "Blue"), t.QuoteIdentifier(baseDefaultName + "Blue")));
+                    result.Add(colInfo.Name + "Alpha", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.A, t.QuoteIdentifier(colInfo.Name + "Alpha"), t.QuoteIdentifier(baseDefaultName + "Alpha")));
                 }
                 return result;
             }
@@ -842,7 +852,7 @@ namespace SilverSim.Database.MsSql._Migration
             List<string> dropDefaults = new List<string>();
             for (int i = 0; i < fieldNames.Length; ++i)
             {
-                dropDefaults.Add($"ALTER TABLE {tableName} DROP {b.QuoteIdentifier("DF_" + tableName + "_" + fieldNames[i])};");
+                dropDefaults.Add($"IF EXISTS(SELECT Name FROM SYS.DEFAULT_CONSTRAINTS WHERE PARENT_OBJECT_ID = OBJECT_ID({tableName.ToMsSqlQuoted()}) AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = {fieldNames[i].ToMsSqlQuoted()} AND object_id = OBJECT_ID({tableName.ToMsSqlQuoted()}))) ALTER TABLE {b.QuoteIdentifier(tableName)} DROP CONSTRAINT {"DF_" + tableName + "_" + fieldNames[i]};");
                 fieldNames[i] = b.QuoteIdentifier(fieldNames[i]);
             }
             return string.Join("", dropDefaults) + $"ALTER TABLE {b.QuoteIdentifier(tableName)} DROP COLUMN {string.Join(",", fieldNames)};";
@@ -951,14 +961,14 @@ namespace SilverSim.Database.MsSql._Migration
                     {
                         sqlRename += $"EXEC sp_rename @objname='{tableName + "." + oldName}', @newname='{kvp.Key}',@objtype='COLUMN';";
                     }
-                    sqlPart = "ALTER COLUMN " + b.QuoteIdentifier(kvp.Key);
+                    sqlPart = "ALTER TABLE " + b.QuoteIdentifier(tableName) + " ALTER COLUMN " + b.QuoteIdentifier(kvp.Key);
                 }
                 else
                 {
                     newFieldDropDefaults.Remove(kvp.Key);
-                    sqlPart = "ADD " + b.QuoteIdentifier(kvp.Key);
+                    sqlPart = "ALTER TABLE " + b.QuoteIdentifier(tableName) + " ADD " + b.QuoteIdentifier(kvp.Key);
                 }
-                sqlPart += " " + kvp.Value;
+                sqlPart += " " + kvp.Value + ";";
                 sqlParts.Add(sqlPart);
                 string def;
                 if (newFieldDefaults.TryGetValue(kvp.Key, out def))
@@ -967,7 +977,7 @@ namespace SilverSim.Database.MsSql._Migration
                 }
             }
 
-            return string.Join("", sqlDrops) + sqlRename + string.Join("", newFieldDropDefaults.Values) + "ALTER TABLE " + b.QuoteIdentifier(tableName) + " " + string.Join(",", sqlParts) + ";" + string.Join("", sqlDefaults);
+            return string.Join("", sqlDrops) + sqlRename + string.Join("", newFieldDropDefaults.Values) + string.Join("", sqlParts) + string.Join("", sqlDefaults);
         }
     }
     #endregion
