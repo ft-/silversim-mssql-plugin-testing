@@ -87,7 +87,11 @@ namespace SilverSim.Database.MsSql.Estate
             new NamedKeyInfo("UserID", "UserID"),
             new NamedKeyInfo("EstateID", "EstateID"),
             new TableRevision(2),
+            new DropPrimaryKeyinfo(),
+            new DropNamedKeyInfo("UserID"),
             new ChangeColumn<UGUI>("UserID") { IsNullAllowed = false, Default = UUID.Zero },
+            new PrimaryKeyInfo(new string[] { "EstateID", "UserID" }),
+            new NamedKeyInfo("UserID", "UserID"),
             #endregion
 
             #region estate_groups

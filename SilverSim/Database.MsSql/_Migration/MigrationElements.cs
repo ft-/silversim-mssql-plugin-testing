@@ -24,6 +24,7 @@ using SilverSim.Types;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Globalization;
 
 namespace SilverSim.Database.MsSql._Migration
 {
@@ -81,7 +82,18 @@ namespace SilverSim.Database.MsSql._Migration
 
     public class DropPrimaryKeyinfo : IMigrationElement
     {
-        public string Sql(string tableName) => "ALTER TABLE " + tableName + " DROP PRIMARY KEY;";
+        public string Sql(string tableName)
+        {
+            SqlCommandBuilder b = new SqlCommandBuilder();
+
+            return "DECLARE @SQL VARCHAR(4000);" +
+            "SET @SQL = 'ALTER TABLE " + b.QuoteIdentifier(tableName) + " DROP CONSTRAINT |ConstraintName| ';" +
+            "SET @SQL = REPLACE(@SQL, '|ConstraintName|', ( SELECT   name " +
+                                               "FROM sysobjects " +
+                                               "WHERE xtype = 'PK' " +
+                                                      " AND parent_obj = OBJECT_ID(" + tableName.ToMsSqlQuoted() + ")));" +
+            "EXEC(@SQL);";
+        }
     }
 
     public class NamedKeyInfo : IMigrationElement
@@ -134,7 +146,7 @@ namespace SilverSim.Database.MsSql._Migration
             Name = name;
         }
 
-        public string Sql(string tableName) => "DROP INDEX " + new SqlCommandBuilder().QuoteIdentifier(tableName + "_" + Name) + ";";
+        public string Sql(string tableName) => "DROP " + new SqlCommandBuilder().QuoteIdentifier(tableName + "_" + Name) + ";";
     }
 
     #region Table fields
@@ -147,7 +159,7 @@ namespace SilverSim.Database.MsSql._Migration
         bool IsLong { get; }
         bool IsFixed { get; }
         object Default { get; }
-        string FieldSql();
+        string FieldSql(string tableName);
     }
 
     public interface IAddColumn : IColumnInfo
@@ -157,12 +169,260 @@ namespace SilverSim.Database.MsSql._Migration
 
     internal static class ColumnGenerator
     {
-        public static Dictionary<string, string> ColumnSql(this IColumnInfo colInfo)
+        public static Dictionary<string, string> DropDefault(this IColumnInfo colInfo, string tableName)
         {
+            string baseDefaultName = $"DF_{tableName}_{colInfo.Name}";
+            var result = new Dictionary<string, string>();
+            var t = new SqlCommandBuilder();
+            Type f = colInfo.FieldType;
+            string cmdgen = "ALTER TABLE {0} DROP CONSTRAINT {1};";
+
+            if (f == typeof(Vector3))
+            {
+                result.Add(colInfo.Name + "X", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "X")));
+                result.Add(colInfo.Name + "Y", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Y")));
+                result.Add(colInfo.Name + "Z", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Z")));
+                return result;
+            }
+            else if (f == typeof(GridVector))
+            {
+                result.Add(colInfo.Name + "X", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "X")));
+                result.Add(colInfo.Name + "Y", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Y")));
+                return result;
+            }
+            else if (f == typeof(Vector4))
+            {
+                result.Add(colInfo.Name + "X", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "X")));
+                result.Add(colInfo.Name + "Y", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Y")));
+                result.Add(colInfo.Name + "Z", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Z")));
+                result.Add(colInfo.Name + "W", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "W")));
+                return result;
+            }
+            else if (f == typeof(Quaternion))
+            {
+                result.Add(colInfo.Name + "X", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "X")));
+                result.Add(colInfo.Name + "Y", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Y")));
+                result.Add(colInfo.Name + "Z", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Z")));
+                result.Add(colInfo.Name + "W", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "W")));
+                return result;
+            }
+            else if (f == typeof(EnvironmentController.WLVector2))
+            {
+                result.Add(colInfo.Name + "X", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "X")));
+                result.Add(colInfo.Name + "Y", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Y")));
+                return result;
+            }
+            else if (f == typeof(EnvironmentController.WLVector4))
+            {
+                result.Add(colInfo.Name + "Red", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Red")));
+                result.Add(colInfo.Name + "Green", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Green")));
+                result.Add(colInfo.Name + "Blue", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Blue")));
+                result.Add(colInfo.Name + "Value", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Value")));
+                return result;
+            }
+            else if (f == typeof(Color))
+            {
+                result.Add(colInfo.Name + "Red", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Red")));
+                result.Add(colInfo.Name + "Green", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Green")));
+                result.Add(colInfo.Name + "Blue", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Blue")));
+                return result;
+            }
+            else if (f == typeof(ColorAlpha))
+            {
+                result.Add(colInfo.Name + "Red", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Red")));
+                result.Add(colInfo.Name + "Green", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Green")));
+                result.Add(colInfo.Name + "Blue", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Blue")));
+                result.Add(colInfo.Name + "Alpha", string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName + "Alpha")));
+                return result;
+            }
+            else
+            {
+                result.Add(colInfo.Name, string.Format(cmdgen, t.QuoteIdentifier(tableName), t.QuoteIdentifier(baseDefaultName)));
+                return result;
+            }
+        }
+
+        public static Dictionary<string, string> AddDefault(this IColumnInfo colInfo, string tableName)
+        {
+            string baseDefaultName = $"DF_{tableName}_{colInfo.Name}";
+            var result = new Dictionary<string, string>();
+            var t = new SqlCommandBuilder();
+            Type f = colInfo.FieldType;
+            if (f == typeof(Vector3))
+            {
+                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                {
+                    if (colInfo.Default.GetType() != f)
+                    {
+                        throw new ArgumentException("Default is not a Vector3 for field " + colInfo.Name);
+                    }
+
+                    var v = (Vector3)colInfo.Default;
+                    result.Add(colInfo.Name + "X", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.X, t.QuoteIdentifier(colInfo.Name + "X"), t.QuoteIdentifier(baseDefaultName + "X")));
+                    result.Add(colInfo.Name + "Y", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Y, t.QuoteIdentifier(colInfo.Name + "Y"), t.QuoteIdentifier(baseDefaultName + "Y")));
+                    result.Add(colInfo.Name + "Z", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Z, t.QuoteIdentifier(colInfo.Name + "Z"), t.QuoteIdentifier(baseDefaultName + "Z")));
+                }
+                return result;
+            }
+            else if (f == typeof(GridVector))
+            {
+                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                {
+                    if (colInfo.Default.GetType() != f)
+                    {
+                        throw new ArgumentException("Default is not a GridVector for field " + colInfo.Name);
+                    }
+
+                    var v = (GridVector)colInfo.Default;
+                    result.Add(colInfo.Name + "X", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.X, t.QuoteIdentifier(colInfo.Name + "X"), t.QuoteIdentifier(baseDefaultName + "X")));
+                    result.Add(colInfo.Name + "Y", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Y, t.QuoteIdentifier(colInfo.Name + "Y"), t.QuoteIdentifier(baseDefaultName + "Y")));
+                }
+                return result;
+            }
+            else if (f == typeof(Vector4))
+            {
+                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                {
+                    if (colInfo.Default.GetType() != f)
+                    {
+                        throw new ArgumentException("Default is not a Vector4 for field " + colInfo.Name);
+                    }
+
+                    var v = (Vector4)colInfo.Default;
+                    result.Add(colInfo.Name + "X", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.X, t.QuoteIdentifier(colInfo.Name + "X"), t.QuoteIdentifier(baseDefaultName + "X")));
+                    result.Add(colInfo.Name + "Y", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Y, t.QuoteIdentifier(colInfo.Name + "Y"), t.QuoteIdentifier(baseDefaultName + "Y")));
+                    result.Add(colInfo.Name + "Z", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Z, t.QuoteIdentifier(colInfo.Name + "Z"), t.QuoteIdentifier(baseDefaultName + "Z")));
+                    result.Add(colInfo.Name + "W", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.W, t.QuoteIdentifier(colInfo.Name + "W"), t.QuoteIdentifier(baseDefaultName + "W")));
+                }
+                return result;
+            }
+            else if (f == typeof(Quaternion))
+            {
+                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                {
+                    if (colInfo.Default.GetType() != f)
+                    {
+                        throw new ArgumentException("Default is not a Quaternion for " + colInfo.Name);
+                    }
+
+                    var v = (Quaternion)colInfo.Default;
+                    result.Add(colInfo.Name + "X", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.X, t.QuoteIdentifier(colInfo.Name + "X"), t.QuoteIdentifier(baseDefaultName + "X")));
+                    result.Add(colInfo.Name + "Y", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Y, t.QuoteIdentifier(colInfo.Name + "Y"), t.QuoteIdentifier(baseDefaultName + "Y")));
+                    result.Add(colInfo.Name + "Z", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Z, t.QuoteIdentifier(colInfo.Name + "Z"), t.QuoteIdentifier(baseDefaultName + "Z")));
+                    result.Add(colInfo.Name + "W", string.Format(CultureInfo.InvariantCulture, "CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.W, t.QuoteIdentifier(colInfo.Name + "W"), t.QuoteIdentifier(baseDefaultName + "W")));
+                }
+                return result;
+            }
+            else if (f == typeof(EnvironmentController.WLVector2))
+            {
+                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                {
+                    if (colInfo.Default.GetType() != f)
+                    {
+                        throw new ArgumentException("Default is not a EnvironmentController.WLVector2 for field " + colInfo.Name);
+                    }
+
+                    var v = (EnvironmentController.WLVector2)colInfo.Default;
+                    result.Add(colInfo.Name + "X", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.X, t.QuoteIdentifier(colInfo.Name + "X"), t.QuoteIdentifier(baseDefaultName + "X")));
+                    result.Add(colInfo.Name + "Y", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Y, t.QuoteIdentifier(colInfo.Name + "Y"), t.QuoteIdentifier(baseDefaultName + "Y")));
+                }
+                return result;
+            }
+            else if (f == typeof(EnvironmentController.WLVector4))
+            {
+                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                {
+                    if (colInfo.Default.GetType() != f)
+                    {
+                        throw new ArgumentException("Default is not a EnvironmentController.WLVector4 for field " + colInfo.Name);
+                    }
+
+                    var v = (EnvironmentController.WLVector4)colInfo.Default;
+                    result.Add(colInfo.Name + "Red", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.X, t.QuoteIdentifier(colInfo.Name + "Red"), t.QuoteIdentifier(baseDefaultName + "Red")));
+                    result.Add(colInfo.Name + "Green", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Y, t.QuoteIdentifier(colInfo.Name + "Green"), t.QuoteIdentifier(baseDefaultName + "Green")));
+                    result.Add(colInfo.Name + "Blue", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.Z, t.QuoteIdentifier(colInfo.Name + "Blue"), t.QuoteIdentifier(baseDefaultName + "Blue")));
+                    result.Add(colInfo.Name + "Value", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.W, t.QuoteIdentifier(colInfo.Name + "Value"), t.QuoteIdentifier(baseDefaultName + "Value")));
+                }
+                return result;
+            }
+            else if (f == typeof(Color))
+            {
+                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                {
+                    if (colInfo.Default.GetType() != f)
+                    {
+                        throw new ArgumentException("Default is not a Color for field " + colInfo.Name);
+                    }
+
+                    var v = (Color)colInfo.Default;
+                    result.Add(colInfo.Name + "Red", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.R, t.QuoteIdentifier(colInfo.Name + "Red"), t.QuoteIdentifier(baseDefaultName + "Red")));
+                    result.Add(colInfo.Name + "Green", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.G, t.QuoteIdentifier(colInfo.Name + "Green"), t.QuoteIdentifier(baseDefaultName + "Green")));
+                    result.Add(colInfo.Name + "Blue", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.B, t.QuoteIdentifier(colInfo.Name + "Blue"), t.QuoteIdentifier(baseDefaultName + "Blue")));
+                }
+                return result;
+            }
+            else if (f == typeof(ColorAlpha))
+            {
+                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                {
+                    if (colInfo.Default.GetType() != f)
+                    {
+                        throw new ArgumentException("Default is not a ColorAlpha for field " + colInfo.Name);
+                    }
+
+                    var v = (ColorAlpha)colInfo.Default;
+                    result.Add(colInfo.Name + "Red", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.R, t.QuoteIdentifier(colInfo.Name + "Red"), t.QuoteIdentifier(baseDefaultName + "Red")));
+                    result.Add(colInfo.Name + "Green", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.G, t.QuoteIdentifier(colInfo.Name + "Green"), t.QuoteIdentifier(baseDefaultName + "Green")));
+                    result.Add(colInfo.Name + "Blue", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.B, t.QuoteIdentifier(colInfo.Name + "Blue"), t.QuoteIdentifier(baseDefaultName + "Blue")));
+                    result.Add(colInfo.Name + "Alpha", string.Format("CONSTRAINT {2} DEFAULT '{0}' FOR {1}", v.A, t.QuoteIdentifier(colInfo.Name + "Alpha"), t.QuoteIdentifier(baseDefaultName + "Alpha")));
+                }
+                return result;
+            }
+
+            if (colInfo.Default != null && !colInfo.IsNullAllowed)
+            {
+                if (colInfo.Default.GetType() != colInfo.FieldType &&
+                    !(colInfo.Default.GetType() == typeof(UUID) &&
+                    colInfo.FieldType == typeof(UGUI)) &&
+                    !(colInfo.Default.GetType() == typeof(UUID) &&
+                    colInfo.FieldType == typeof(UGUIWithName)) &&
+                    !(colInfo.Default.GetType() == typeof(UUID) &&
+                    colInfo.FieldType == typeof(UGI)))
+                {
+                    throw new ArgumentOutOfRangeException("Default does not match expected type in field " + colInfo.Name + " target type=" + colInfo.FieldType.FullName + " defaultType=" + colInfo.Default.GetType().FullName);
+                }
+
+                object def = colInfo.Default;
+                if (typeof(bool) == f)
+                {
+                    def = ((bool)def) ? 1 : 0;
+                }
+                else if (typeof(Date) == f)
+                {
+                    def = ((Date)def).AsULong;
+                }
+                else if (typeof(ParcelID) == f)
+                {
+                    def = (Guid)new UUID(((ParcelID)def).GetBytes(), 0);
+                }
+                else if (f.IsEnum)
+                {
+                    def = Convert.ChangeType(def, f.GetEnumUnderlyingType());
+                }
+                result.Add(colInfo.Name, string.Format("CONSTRAINT {2} DEFAULT {0} FOR {1}", def.ToString().ToMsSqlQuoted(), t.QuoteIdentifier(colInfo.Name), t.QuoteIdentifier(baseDefaultName)));
+            }
+
+            return result;
+        }
+
+        public static Dictionary<string, string> ColumnSql(this IColumnInfo colInfo, string tableName, bool useDefault = true)
+        {
+            var t = new SqlCommandBuilder();
             var result = new Dictionary<string, string>();
             string notNull = colInfo.IsNullAllowed ? string.Empty : "NOT NULL ";
             string typeSql;
             Type f = colInfo.FieldType;
+            string baseDefaultName = $"DF_{tableName}_{colInfo.Name}";
             if (f == typeof(string))
             {
                 typeSql = (colInfo.Cardinality == 0) ?
@@ -219,7 +479,7 @@ namespace SilverSim.Database.MsSql._Migration
             }
             else if (f == typeof(Vector3))
             {
-                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                if (colInfo.Default != null && !colInfo.IsNullAllowed && useDefault)
                 {
                     if (colInfo.Default.GetType() != f)
                     {
@@ -227,9 +487,9 @@ namespace SilverSim.Database.MsSql._Migration
                     }
 
                     var v = (Vector3)colInfo.Default;
-                    result.Add(colInfo.Name + "X", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.X));
-                    result.Add(colInfo.Name + "Y", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.Y));
-                    result.Add(colInfo.Name + "Z", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.Z));
+                    result.Add(colInfo.Name + "X", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.X, t.QuoteIdentifier(baseDefaultName + "X")));
+                    result.Add(colInfo.Name + "Y", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.Y, t.QuoteIdentifier(baseDefaultName + "Y")));
+                    result.Add(colInfo.Name + "Z", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.Z, t.QuoteIdentifier(baseDefaultName + "Z")));
                 }
                 else
                 {
@@ -241,7 +501,7 @@ namespace SilverSim.Database.MsSql._Migration
             }
             else if (f == typeof(GridVector))
             {
-                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                if (colInfo.Default != null && !colInfo.IsNullAllowed && useDefault)
                 {
                     if (colInfo.Default.GetType() != f)
                     {
@@ -249,8 +509,8 @@ namespace SilverSim.Database.MsSql._Migration
                     }
 
                     var v = (GridVector)colInfo.Default;
-                    result.Add(colInfo.Name + "X", string.Format("integer {0} DEFAULT '{1}'", notNull, v.X));
-                    result.Add(colInfo.Name + "Y", string.Format("integer {0} DEFAULT '{1}'", notNull, v.Y));
+                    result.Add(colInfo.Name + "X", string.Format(CultureInfo.InvariantCulture, "integer {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.X, t.QuoteIdentifier(baseDefaultName + "X")));
+                    result.Add(colInfo.Name + "Y", string.Format(CultureInfo.InvariantCulture, "integer {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.Y, t.QuoteIdentifier(baseDefaultName + "Y")));
                 }
                 else
                 {
@@ -261,7 +521,7 @@ namespace SilverSim.Database.MsSql._Migration
             }
             else if (f == typeof(Vector4))
             {
-                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                if (colInfo.Default != null && !colInfo.IsNullAllowed && useDefault)
                 {
                     if (colInfo.Default.GetType() != f)
                     {
@@ -269,10 +529,10 @@ namespace SilverSim.Database.MsSql._Migration
                     }
 
                     var v = (Vector4)colInfo.Default;
-                    result.Add(colInfo.Name + "X", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.X));
-                    result.Add(colInfo.Name + "Y", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.Y));
-                    result.Add(colInfo.Name + "Z", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.Z));
-                    result.Add(colInfo.Name + "W", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.W));
+                    result.Add(colInfo.Name + "X", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.X, t.QuoteIdentifier(baseDefaultName + "X")));
+                    result.Add(colInfo.Name + "Y", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.Y, t.QuoteIdentifier(baseDefaultName + "Y")));
+                    result.Add(colInfo.Name + "Z", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.Z, t.QuoteIdentifier(baseDefaultName + "Z")));
+                    result.Add(colInfo.Name + "W", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.W, t.QuoteIdentifier(baseDefaultName + "W")));
                 }
                 else
                 {
@@ -285,7 +545,7 @@ namespace SilverSim.Database.MsSql._Migration
             }
             else if (f == typeof(Quaternion))
             {
-                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                if (colInfo.Default != null && !colInfo.IsNullAllowed && useDefault)
                 {
                     if (colInfo.Default.GetType() != f)
                     {
@@ -293,10 +553,10 @@ namespace SilverSim.Database.MsSql._Migration
                     }
 
                     var v = (Quaternion)colInfo.Default;
-                    result.Add(colInfo.Name + "X", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.X));
-                    result.Add(colInfo.Name + "Y", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.Y));
-                    result.Add(colInfo.Name + "Z", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.Z));
-                    result.Add(colInfo.Name + "W", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.W));
+                    result.Add(colInfo.Name + "X", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.X, t.QuoteIdentifier(baseDefaultName + "X")));
+                    result.Add(colInfo.Name + "Y", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.Y, t.QuoteIdentifier(baseDefaultName + "Y")));
+                    result.Add(colInfo.Name + "Z", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.Z, t.QuoteIdentifier(baseDefaultName + "Z")));
+                    result.Add(colInfo.Name + "W", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.W, t.QuoteIdentifier(baseDefaultName + "W")));
                 }
                 else
                 {
@@ -309,7 +569,7 @@ namespace SilverSim.Database.MsSql._Migration
             }
             else if (f == typeof(EnvironmentController.WLVector2))
             {
-                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                if (colInfo.Default != null && !colInfo.IsNullAllowed && useDefault)
                 {
                     if (colInfo.Default.GetType() != f)
                     {
@@ -317,8 +577,8 @@ namespace SilverSim.Database.MsSql._Migration
                     }
 
                     var v = (EnvironmentController.WLVector2)colInfo.Default;
-                    result.Add(colInfo.Name + "X", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.X));
-                    result.Add(colInfo.Name + "Y", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.Y));
+                    result.Add(colInfo.Name + "X", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.X, t.QuoteIdentifier(baseDefaultName + "X")));
+                    result.Add(colInfo.Name + "Y", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.Y, t.QuoteIdentifier(baseDefaultName + "Y")));
                 }
                 else
                 {
@@ -329,7 +589,7 @@ namespace SilverSim.Database.MsSql._Migration
             }
             else if (f == typeof(EnvironmentController.WLVector4))
             {
-                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                if (colInfo.Default != null && !colInfo.IsNullAllowed && useDefault)
                 {
                     if (colInfo.Default.GetType() != f)
                     {
@@ -337,10 +597,10 @@ namespace SilverSim.Database.MsSql._Migration
                     }
 
                     var v = (EnvironmentController.WLVector4)colInfo.Default;
-                    result.Add(colInfo.Name + "Red", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.X));
-                    result.Add(colInfo.Name + "Green", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.Y));
-                    result.Add(colInfo.Name + "Blue", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.Z));
-                    result.Add(colInfo.Name + "Value", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.W));
+                    result.Add(colInfo.Name + "Red", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.X, t.QuoteIdentifier(baseDefaultName + "Red")));
+                    result.Add(colInfo.Name + "Green", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.Y, t.QuoteIdentifier(baseDefaultName + "Green")));
+                    result.Add(colInfo.Name + "Blue", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.Z, t.QuoteIdentifier(baseDefaultName + "Blue")));
+                    result.Add(colInfo.Name + "Value", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.W, t.QuoteIdentifier(baseDefaultName + "Value")));
                 }
                 else
                 {
@@ -353,7 +613,7 @@ namespace SilverSim.Database.MsSql._Migration
             }
             else if (f == typeof(Color))
             {
-                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                if (colInfo.Default != null && !colInfo.IsNullAllowed && useDefault)
                 {
                     if (colInfo.Default.GetType() != f)
                     {
@@ -361,9 +621,9 @@ namespace SilverSim.Database.MsSql._Migration
                     }
 
                     var v = (Color)colInfo.Default;
-                    result.Add(colInfo.Name + "Red", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.R));
-                    result.Add(colInfo.Name + "Green", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.G));
-                    result.Add(colInfo.Name + "Blue", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.B));
+                    result.Add(colInfo.Name + "Red", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.R, t.QuoteIdentifier(baseDefaultName + "Red")));
+                    result.Add(colInfo.Name + "Green", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.G, t.QuoteIdentifier(baseDefaultName + "Green")));
+                    result.Add(colInfo.Name + "Blue", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.B, t.QuoteIdentifier(baseDefaultName + "Blue")));
                 }
                 else
                 {
@@ -375,7 +635,7 @@ namespace SilverSim.Database.MsSql._Migration
             }
             else if (f == typeof(ColorAlpha))
             {
-                if (colInfo.Default != null && !colInfo.IsNullAllowed)
+                if (colInfo.Default != null && !colInfo.IsNullAllowed && useDefault)
                 {
                     if (colInfo.Default.GetType() != f)
                     {
@@ -383,10 +643,10 @@ namespace SilverSim.Database.MsSql._Migration
                     }
 
                     var v = (ColorAlpha)colInfo.Default;
-                    result.Add(colInfo.Name + "Red", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.R));
-                    result.Add(colInfo.Name + "Green", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.G));
-                    result.Add(colInfo.Name + "Blue", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.B));
-                    result.Add(colInfo.Name + "Alpha", string.Format("float(53) {0} DEFAULT '{1}'", notNull, v.A));
+                    result.Add(colInfo.Name + "Red", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.R, t.QuoteIdentifier(baseDefaultName + "Red")));
+                    result.Add(colInfo.Name + "Green", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.G, t.QuoteIdentifier(baseDefaultName + "Green")));
+                    result.Add(colInfo.Name + "Blue", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.B, t.QuoteIdentifier(baseDefaultName + "Blue")));
+                    result.Add(colInfo.Name + "Alpha", string.Format(CultureInfo.InvariantCulture, "float(53) {0} CONSTRAINT {2} DEFAULT '{1}'", notNull, v.A, t.QuoteIdentifier(baseDefaultName + "Alpha")));
                 }
                 else
                 {
@@ -417,7 +677,7 @@ namespace SilverSim.Database.MsSql._Migration
                 throw new ArgumentOutOfRangeException("FieldType " + f.FullName + " is not supported in field " + colInfo.Name);
             }
 
-            if (colInfo.Default != null && !colInfo.IsNullAllowed)
+            if (colInfo.Default != null && !colInfo.IsNullAllowed && useDefault)
             {
                 if (colInfo.Default.GetType() != colInfo.FieldType &&
                     !(colInfo.Default.GetType() == typeof(UUID) &&
@@ -447,10 +707,11 @@ namespace SilverSim.Database.MsSql._Migration
                 {
                     def = Convert.ChangeType(def, f.GetEnumUnderlyingType());
                 }
-                result.Add(colInfo.Name, string.Format("{0} {1} DEFAULT {2}",
+                result.Add(colInfo.Name, string.Format(CultureInfo.InvariantCulture, "{0} {1} CONSTRAINT {3} DEFAULT {2}",
                     typeSql,
                     notNull,
-                    def.ToString().ToMsSqlQuoted()));
+                    def.ToString().ToMsSqlQuoted(),
+                    t.QuoteIdentifier(baseDefaultName)));
             }
             else
             {
@@ -482,29 +743,39 @@ namespace SilverSim.Database.MsSql._Migration
             Default = default(T);
         }
 
-        public string FieldSql()
+        public string FieldSql(string tableName)
         {
             var parts = new List<string>();
             SqlCommandBuilder b = new SqlCommandBuilder();
-            foreach (KeyValuePair<string, string> kvp in this.ColumnSql())
+            foreach (KeyValuePair<string, string> kvp in this.ColumnSql(tableName))
             {
                 parts.Add(b.QuoteIdentifier(kvp.Key) + " " + kvp.Value);
             }
             return string.Join(",", parts);
         }
 
-        public string AlterFieldSql()
+        private string AlterFieldSql(string tableName)
         {
             var parts = new List<string>();
             SqlCommandBuilder b = new SqlCommandBuilder();
-            foreach (KeyValuePair<string, string> kvp in this.ColumnSql())
+            foreach (KeyValuePair<string, string> kvp in this.ColumnSql(tableName, false))
             {
                 parts.Add(b.QuoteIdentifier(kvp.Key) + " " + kvp.Value);
             }
-            return string.Join(", ADD COLUMN ", parts);
+            return string.Join(", ", parts);
         }
 
-        public string Sql(string tableName) => string.Format("ALTER TABLE {0} ADD COLUMN {1}", new SqlCommandBuilder().QuoteIdentifier(tableName), AlterFieldSql());
+        public string Sql(string tableName)
+        {
+            SqlCommandBuilder t = new SqlCommandBuilder();
+            Dictionary<string, string> addDefaults = this.AddDefault(tableName);
+            List<string> addDefault = new List<string>();
+            foreach(string val in addDefaults.Values)
+            {
+                addDefault.Add($"ALTER TABLE {t.QuoteIdentifier(tableName)} ADD {val};");
+            }
+            return string.Format("ALTER TABLE {0} ADD {1};", t.QuoteIdentifier(tableName), AlterFieldSql(tableName)) + string.Join("", addDefault);
+        }
     }
 
     public class DropColumn : IMigrationElement
@@ -568,11 +839,13 @@ namespace SilverSim.Database.MsSql._Migration
             }
 
             SqlCommandBuilder b = new SqlCommandBuilder();
+            List<string> dropDefaults = new List<string>();
             for (int i = 0; i < fieldNames.Length; ++i)
             {
-                fieldNames[i] = string.Format("DROP COLUMN ", b.QuoteIdentifier(fieldNames[i]));
+                dropDefaults.Add($"ALTER TABLE {tableName} DROP {b.QuoteIdentifier("DF_" + tableName + "_" + fieldNames[i])};");
+                fieldNames[i] = b.QuoteIdentifier(fieldNames[i]);
             }
-            return string.Format("ALTER TABLE {0} {1};", b.QuoteIdentifier(tableName), string.Join(",", fieldNames));
+            return string.Join("", dropDefaults) + $"ALTER TABLE {b.QuoteIdentifier(tableName)} DROP COLUMN {string.Join(",", fieldNames)};";
         }
     }
 
@@ -599,7 +872,7 @@ namespace SilverSim.Database.MsSql._Migration
         public bool IsFixed { get { return m_ColumnInfo.IsFixed; } }
 
         public string Name { get { return m_ColumnInfo.Name; } }
-        public string FieldSql()
+        public string FieldSql(string tableName)
         {
             throw new NotSupportedException();
         }
@@ -624,11 +897,11 @@ namespace SilverSim.Database.MsSql._Migration
             OldName = name;
         }
 
-        public string FieldSql()
+        public string FieldSql(string tableName)
         {
             var parts = new List<string>();
             SqlCommandBuilder b = new SqlCommandBuilder();
-            foreach (KeyValuePair<string, string> kvp in this.ColumnSql())
+            foreach (KeyValuePair<string, string> kvp in this.ColumnSql(tableName))
             {
                 parts.Add(b.QuoteIdentifier(kvp.Key) + " " + kvp.Value);
             }
@@ -645,11 +918,17 @@ namespace SilverSim.Database.MsSql._Migration
             var oldField = new FormerFieldInfo(this, formerType);
             List<string> oldFields;
             Dictionary<string, string> newFields;
+            Dictionary<string, string> newFieldDefaults;
+            Dictionary<string, string> newFieldDropDefaults;
+            var sqlDefaults = new List<string>();
 
-            oldFields = new List<string>(oldField.ColumnSql().Keys);
-            newFields = this.ColumnSql();
+            oldFields = new List<string>(oldField.ColumnSql(tableName).Keys);
+            newFields = this.ColumnSql(tableName, false);
+            newFieldDropDefaults = this.DropDefault(tableName);
+            newFieldDefaults = this.AddDefault(tableName);
 
             var sqlParts = new List<string>();
+            var sqlDrops = new List<string>();
             SqlCommandBuilder b = new SqlCommandBuilder();
 
             /* remove anything that is not needed anymore */
@@ -657,7 +936,7 @@ namespace SilverSim.Database.MsSql._Migration
             {
                 if (!newFields.ContainsKey(fieldName))
                 {
-                    sqlParts.Add("DROP COLUMN " + b.QuoteIdentifier(fieldName));
+                    sqlDrops.Add("ALTER TABLE " + b.QuoteIdentifier(tableName) + " DROP COLUMN " + b.QuoteIdentifier(fieldName) + ";");
                 }
             }
 
@@ -676,13 +955,19 @@ namespace SilverSim.Database.MsSql._Migration
                 }
                 else
                 {
+                    newFieldDropDefaults.Remove(kvp.Key);
                     sqlPart = "ADD " + b.QuoteIdentifier(kvp.Key);
                 }
                 sqlPart += " " + kvp.Value;
                 sqlParts.Add(sqlPart);
+                string def;
+                if (newFieldDefaults.TryGetValue(kvp.Key, out def))
+                {
+                    sqlDefaults.Add("ALTER TABLE " + b.QuoteIdentifier(tableName) + " ADD " + def + ";");
+                }
             }
 
-            return sqlRename + "ALTER TABLE " + b.QuoteIdentifier(tableName) + " " + string.Join(",", sqlParts) + ";";
+            return string.Join("", sqlDrops) + sqlRename + string.Join("", newFieldDropDefaults.Values) + "ALTER TABLE " + b.QuoteIdentifier(tableName) + " " + string.Join(",", sqlParts) + ";" + string.Join("", sqlDefaults);
         }
     }
     #endregion

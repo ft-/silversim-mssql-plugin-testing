@@ -65,7 +65,7 @@ namespace SilverSim.Database.MsSql._Migration
             var fieldSqls = new List<string>();
             foreach (IColumnInfo field in fields.Values)
             {
-                fieldSqls.Add(field.FieldSql());
+                fieldSqls.Add(field.FieldSql(table.Name));
             }
             if (null != primaryKey)
             {
@@ -290,7 +290,13 @@ namespace SilverSim.Database.MsSql._Migration
                     {
                         if (null != primaryKey && insideTransaction != null)
                         {
-                            ExecuteStatement(conn, "ALTER TABLE " + b.QuoteIdentifier(table.Name) + " DROP PRIMARY KEY;", log, insideTransaction);
+                            ExecuteStatement(conn, "DECLARE @SQL VARCHAR(4000);" +
+                                "SET @SQL = 'ALTER TABLE " + b.QuoteIdentifier(table.Name) + " DROP CONSTRAINT |ConstraintName| ';" +
+                                "SET @SQL = REPLACE(@SQL, '|ConstraintName|', ( SELECT   name " +
+                                               "FROM sysobjects " +
+                                               "WHERE xtype = 'PK' " +
+                                                      " AND parent_obj = OBJECT_ID(" + table.Name.ToMsSqlQuoted() + ")));" +
+                                "EXEC(@SQL);", log, insideTransaction);
                         }
                         primaryKey = new PrimaryKeyInfo((PrimaryKeyInfo)migration);
                         if (insideTransaction != null)
