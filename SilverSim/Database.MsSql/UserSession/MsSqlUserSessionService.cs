@@ -325,6 +325,23 @@ namespace SilverSim.Database.MsSql.UserSession
             }
         }
 
+        public override bool CompareAndRemove(UUID sessionID, string assoc, string varname, string value)
+        {
+            using (var conn = new SqlConnection(m_ConnectionString))
+            {
+                conn.Open();
+                using (var cmd = new SqlCommand("DELETE FROM usersessiondata WHERE sessionid=@sessionid AND assoc=@assoc AND varname=@varname AND [value] = @value AND (isexpiring=0 OR expirydate >= @now)", conn))
+                {
+                    cmd.Parameters.AddParameter("@sessionid", sessionID);
+                    cmd.Parameters.AddParameter("@assoc", assoc);
+                    cmd.Parameters.AddParameter("@varname", varname);
+                    cmd.Parameters.AddParameter("@value", value);
+                    cmd.Parameters.AddParameter("@now", Date.Now);
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            }
+        }
+
         public override void SetExpiringValue(UUID sessionID, string assoc, string varname, string value, TimeSpan span)
         {
             using (var conn = new SqlConnection(m_ConnectionString))
@@ -535,6 +552,145 @@ namespace SilverSim.Database.MsSql.UserSession
                             cmd.Parameters.AddParameter("@assoc", assoc);
                             cmd.Parameters.AddParameter("@varname", varname);
                             cmd.ExecuteNonQuery();
+                        }
+                    }
+                    return true;
+                });
+            }
+            value = val;
+            return success;
+        }
+
+        public override bool TryCompareValueExtendLifetime(UUID sessionID, string assoc, string varname, string oldvalue, TimeSpan span, out UserSessionInfo.Entry value)
+        {
+            UserSessionInfo.Entry val = default(UserSessionInfo.Entry);
+            bool success;
+            value = val;
+            using (var conn = new SqlConnection(m_ConnectionString))
+            {
+                conn.Open();
+                success = conn.InsideTransaction((transaction) =>
+                {
+                    using (var cmd = new SqlCommand("SELECT * FROM usersessiondata WHERE sessionid = @sessionid AND assoc = @assoc AND varname = @varname AND [value] = @value AND (isexpiring=0 OR expirydate >= @now)", conn)
+                    {
+                        Transaction = transaction
+                    })
+                    {
+                        cmd.Parameters.AddParameter("@sessionid", sessionID);
+                        cmd.Parameters.AddParameter("@assoc", assoc);
+                        cmd.Parameters.AddParameter("@varname", varname);
+                        cmd.Parameters.AddParameter("@value", oldvalue);
+                        cmd.Parameters.AddParameter("@now", Date.Now);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (!reader.Read())
+                            {
+                                return false;
+                            }
+                            val = new UserSessionInfo.Entry
+                            {
+                                Value = (string)reader["value"]
+                            };
+
+                            if ((bool)reader["isexpiring"])
+                            {
+                                val.ExpiryDate = reader.GetDate("expirydate");
+                            }
+                        }
+                    }
+
+                    if (val.ExpiryDate != null)
+                    {
+                        val.ExpiryDate = val.ExpiryDate.Add(span);
+                        using (var cmd = new SqlCommand("UPDATE usersessiondata SET expirydate = @expirydate WHERE sessionid = @sessionid AND assoc = @assoc AND varname = @varname AND [value] = @value", conn)
+                        {
+                            Transaction = transaction
+                        })
+                        {
+                            cmd.Parameters.AddParameter("@expirydate", val.ExpiryDate);
+                            cmd.Parameters.AddParameter("@sessionid", sessionID);
+                            cmd.Parameters.AddParameter("@assoc", assoc);
+                            cmd.Parameters.AddParameter("@varname", varname);
+                            cmd.Parameters.AddParameter("@value", oldvalue);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    return true;
+                });
+            }
+            value = val;
+            return success;
+        }
+
+        public override bool TryCompareAndChangeValueExtendLifetime(UUID sessionID, string assoc, string varname, string oldvalue, string newvalue, TimeSpan span, out UserSessionInfo.Entry value)
+        {
+            UserSessionInfo.Entry val = default(UserSessionInfo.Entry);
+            bool success;
+            value = val;
+            using (var conn = new SqlConnection(m_ConnectionString))
+            {
+                conn.Open();
+                success = conn.InsideTransaction((transaction) =>
+                {
+                    using (var cmd = new SqlCommand("SELECT * FROM usersessiondata WHERE sessionid = @sessionid AND assoc = @assoc AND varname = @varname AND [value] = @value AND (isexpiring=0 OR expirydate >= @now)", conn)
+                    {
+                        Transaction = transaction
+                    })
+                    {
+                        cmd.Parameters.AddParameter("@sessionid", sessionID);
+                        cmd.Parameters.AddParameter("@assoc", assoc);
+                        cmd.Parameters.AddParameter("@varname", varname);
+                        cmd.Parameters.AddParameter("@value", oldvalue);
+                        cmd.Parameters.AddParameter("@now", Date.Now);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (!reader.Read())
+                            {
+                                return false;
+                            }
+                            val = new UserSessionInfo.Entry
+                            {
+                                Value = (string)reader["value"]
+                            };
+
+                            if ((bool)reader["isexpiring"])
+                            {
+                                val.ExpiryDate = reader.GetDate("expirydate");
+                            }
+                        }
+                    }
+
+                    val.Value = newvalue;
+                    if (val.ExpiryDate != null)
+                    {
+                        val.ExpiryDate = val.ExpiryDate.Add(span);
+                        using (var cmd = new SqlCommand("UPDATE usersessiondata SET expirydate = @expirydate, [value] = @newvalue WHERE sessionid = @sessionid AND assoc = @assoc AND varname = @varname AND [value] = @value", conn)
+                        {
+                            Transaction = transaction
+                        })
+                        {
+                            cmd.Parameters.AddParameter("@expirydate", val.ExpiryDate);
+                            cmd.Parameters.AddParameter("@sessionid", sessionID);
+                            cmd.Parameters.AddParameter("@assoc", assoc);
+                            cmd.Parameters.AddParameter("@varname", varname);
+                            cmd.Parameters.AddParameter("@value", oldvalue);
+                            cmd.Parameters.AddParameter("@newvalue", newvalue);
+                            return cmd.ExecuteNonQuery() > 0;
+                        }
+                    }
+                    else
+                    {
+                        using (var cmd = new SqlCommand("UPDATE usersessiondata SET [value] = @newvalue WHERE sessionid = @sessionid AND assoc = @assoc AND varname = @varname AND [value] = @value", conn)
+                        {
+                            Transaction = transaction
+                        })
+                        {
+                            cmd.Parameters.AddParameter("@sessionid", sessionID);
+                            cmd.Parameters.AddParameter("@assoc", assoc);
+                            cmd.Parameters.AddParameter("@varname", varname);
+                            cmd.Parameters.AddParameter("@value", oldvalue);
+                            cmd.Parameters.AddParameter("@newvalue", newvalue);
+                            return cmd.ExecuteNonQuery() > 0;
                         }
                     }
                     return true;
