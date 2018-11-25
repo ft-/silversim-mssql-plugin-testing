@@ -40,8 +40,7 @@ namespace SilverSim.Database.MsSql.Experience
     {
         public static ExperienceInfo ToExperienceInfo(this SqlDataReader reader) => new ExperienceInfo
         {
-            ID = reader.GetUUID("ID"),
-            Name = (string)reader["Name"],
+            ID = new UEI(reader.GetUUID("ID"), (string)reader["Name"], reader.GetUri("HomeURI")),
             Description = (string)reader["Description"],
             Properties = reader.GetEnum<ExperiencePropertyFlags>("Properties"),
             Owner = reader.GetUGUI("Owner"),
@@ -56,7 +55,7 @@ namespace SilverSim.Database.MsSql.Experience
 
     [Description("Ms Sql Experience Backend")]
     [PluginName("Experience")]
-    public sealed partial class MsSqlExperienceService : ExperienceServiceInterface, IPlugin, IDBServiceInterface, IUserAccountDeleteServiceInterface
+    public sealed partial class MsSqlExperienceService : ExperienceServiceInterface, IPlugin, IDBServiceInterface, IUserAccountDeleteServiceInterface, IEquatable<MsSqlExperienceService>
     {
         private readonly string m_ConnectionString;
         private static readonly ILog m_Log = LogManager.GetLogger("MSSQL EXPERIENCE");
@@ -79,18 +78,21 @@ namespace SilverSim.Database.MsSql.Experience
 
         public override void Add(ExperienceInfo info)
         {
-            var vals = new Dictionary<string, object>();
-            vals.Add("ID", info.ID);
-            vals.Add("Name", info.Name);
-            vals.Add("Description", info.Description);
-            vals.Add("Properties", info.Properties);
-            vals.Add("Owner", info.Owner);
-            vals.Add("Creator", info.Creator);
-            vals.Add("Group", info.Group);
-            vals.Add("Maturity", info.Maturity);
-            vals.Add("Marketplace", info.Marketplace);
-            vals.Add("LogoID", info.LogoID);
-            vals.Add("SlUrl", info.SlUrl);
+            var vals = new Dictionary<string, object>
+            {
+                { "ID", info.ID.ID },
+                { "Name", info.ID.ExperienceName },
+                { "HomeURI", info.ID.HomeURI },
+                { "Description", info.Description },
+                { "Properties", info.Properties },
+                { "Owner", info.Owner },
+                { "Creator", info.Creator },
+                { "Group", info.Group },
+                { "Maturity", info.Maturity },
+                { "Marketplace", info.Marketplace },
+                { "LogoID", info.LogoID },
+                { "SlUrl", info.SlUrl }
+            };
 
             using (var conn = new SqlConnection(m_ConnectionString))
             {
@@ -99,20 +101,20 @@ namespace SilverSim.Database.MsSql.Experience
             }
         }
 
-        public override List<UUID> FindExperienceByName(string query)
+        public override List<UEI> FindExperienceByName(string query)
         {
-            var result = new List<UUID>();
+            var result = new List<UEI>();
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT ID FROM experiences WHERE Name LIKE @name", conn))
+                using (var cmd = new SqlCommand("SELECT ID, Name, HomeURI FROM experiences WHERE Name LIKE @name", conn))
                 {
                     cmd.Parameters.AddParameter("@name", "%" + query + "%");
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            result.Add(reader.GetUUID("ID"));
+                            result.Add(new UEI(reader.GetUUID("ID"), (string)reader["Name"], reader.GetUri("HomeURI")));
                         }
                     }
                 }
@@ -141,13 +143,13 @@ namespace SilverSim.Database.MsSql.Experience
             return result;
         }
 
-        public override List<UUID> GetCreatorExperiences(UGUI creator)
+        public override List<UEI> GetCreatorExperiences(UGUI creator)
         {
-            var result = new List<UUID>();
+            var result = new List<UEI>();
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT Creator, ID FROM experiences WHERE Creator LIKE @creator", conn))
+                using (var cmd = new SqlCommand("SELECT Creator, ID, Name, HomeURI FROM experiences WHERE Creator LIKE @creator", conn))
                 {
                     cmd.Parameters.AddParameter("@creator", creator.ID.ToString() + "%");
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -156,7 +158,7 @@ namespace SilverSim.Database.MsSql.Experience
                         {
                             if (reader.GetUGUI("Creator").EqualsGrid(creator))
                             {
-                                result.Add(reader.GetUUID("ID"));
+                                result.Add(new UEI(reader.GetUUID("ID"), (string)reader["Name"], reader.GetUri("HomeURI")));
                             }
                         }
                     }
@@ -165,13 +167,13 @@ namespace SilverSim.Database.MsSql.Experience
             return result;
         }
 
-        public override List<UUID> GetGroupExperiences(UGI group)
+        public override List<UEI> GetGroupExperiences(UGI group)
         {
-            var result = new List<UUID>();
+            var result = new List<UEI>();
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT Group, ID FROM experiences WHERE Group LIKE @group", conn))
+                using (var cmd = new SqlCommand("SELECT Group, ID, Name, HomeURI FROM experiences WHERE Group LIKE @group", conn))
                 {
                     cmd.Parameters.AddParameter("@group", group.ID.ToString() + "%");
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -180,7 +182,7 @@ namespace SilverSim.Database.MsSql.Experience
                         {
                             if (reader.GetUGI("Group").Equals(group))
                             {
-                                result.Add(reader.GetUUID("ID"));
+                                result.Add(new UEI(reader.GetUUID("ID"), (string)reader["Name"], reader.GetUri("HomeURI")));
                             }
                         }
                     }
@@ -189,13 +191,13 @@ namespace SilverSim.Database.MsSql.Experience
             return result;
         }
 
-        public override List<UUID> GetOwnerExperiences(UGUI owner)
+        public override List<UEI> GetOwnerExperiences(UGUI owner)
         {
-            var result = new List<UUID>();
+            var result = new List<UEI>();
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT Owner, ID FROM experiences WHERE Owner LIKE @owner", conn))
+                using (var cmd = new SqlCommand("SELECT Owner, ID, Name, HomeURI FROM experiences WHERE Owner LIKE @owner", conn))
                 {
                     cmd.Parameters.AddParameter("@owner", owner.ID.ToString() + "%");
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -204,7 +206,7 @@ namespace SilverSim.Database.MsSql.Experience
                         {
                             if (reader.GetUGUI("Owner").EqualsGrid(owner))
                             {
-                                result.Add(reader.GetUUID("ID"));
+                                result.Add(new UEI(reader.GetUUID("ID"), (string)reader["Name"], reader.GetUri("HomeURI")));
                             }
                         }
                     }
@@ -214,7 +216,7 @@ namespace SilverSim.Database.MsSql.Experience
         }
 
         private static readonly string[] m_RemoveFromTables = new string[] { "experiencekeyvalues", "experienceadmins", "experienceusers" };
-        public override bool Remove(UGUI requestingAgent, UUID id)
+        public override bool Remove(UGUI requestingAgent, UEI id)
         {
             using (var conn = new SqlConnection(m_ConnectionString))
             {
@@ -224,7 +226,7 @@ namespace SilverSim.Database.MsSql.Experience
                     using (var cmd = new SqlCommand("SELECT TOP(1) Owner FROM experiences WHERE ID = @experienceid", conn))
                     {
                         cmd.Transaction = transaction;
-                        cmd.Parameters.AddParameter("@experienceid", id);
+                        cmd.Parameters.AddParameter("@experienceid", id.ID);
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (!reader.Read())
@@ -244,7 +246,7 @@ namespace SilverSim.Database.MsSql.Experience
                         using (var cmd = new SqlCommand("DELETE FROM " + table + " WHERE ExperienceID = @experienceid", conn))
                         {
                             cmd.Transaction = transaction;
-                            cmd.Parameters.AddParameter("@experienceid", id);
+                            cmd.Parameters.AddParameter("@experienceid", id.ID);
                             cmd.ExecuteNonQuery();
                         }
                     }
@@ -252,7 +254,7 @@ namespace SilverSim.Database.MsSql.Experience
                     using (var cmd = new SqlCommand("DELETE FROM experiences WHERE ID = @experienceid", conn))
                     {
                         cmd.Transaction = transaction;
-                        cmd.Parameters.AddParameter("@experienceid", id);
+                        cmd.Parameters.AddParameter("@experienceid", id.ID);
                         return cmd.ExecuteNonQuery() > 0;
                     }
                 });
@@ -277,7 +279,7 @@ namespace SilverSim.Database.MsSql.Experience
             }
         }
 
-        public override bool TryGetValue(UUID experienceID, out ExperienceInfo experienceInfo)
+        public override bool TryGetValue(UUID experienceID, out UEI uei)
         {
             using (var conn = new SqlConnection(m_ConnectionString))
             {
@@ -285,6 +287,28 @@ namespace SilverSim.Database.MsSql.Experience
                 using (var cmd = new SqlCommand("SELECT TOP(1) * FROM experiences WHERE ID = @id", conn))
                 {
                     cmd.Parameters.AddParameter("@id", experienceID);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            uei = new UEI(reader.GetUUID("ID"), (string)reader["Name"], reader.GetUri("HomeURI"));
+                            return true;
+                        }
+                    }
+                }
+            }
+            uei = default(UEI);
+            return false;
+        }
+
+        public override bool TryGetValue(UEI experienceID, out ExperienceInfo experienceInfo)
+        {
+            using (var conn = new SqlConnection(m_ConnectionString))
+            {
+                conn.Open();
+                using (var cmd = new SqlCommand("SELECT TOP(1) * FROM experiences WHERE ID = @id", conn))
+                {
+                    cmd.Parameters.AddParameter("@id", experienceID.ID);
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
@@ -301,16 +325,19 @@ namespace SilverSim.Database.MsSql.Experience
 
         public override void Update(UGUI requestingAgent, ExperienceInfo info)
         {
-            var vals = new Dictionary<string, object>();
-            vals.Add("Name", info.Name);
-            vals.Add("Description", info.Description);
-            vals.Add("Properties", info.Properties);
-            vals.Add("Owner", info.Owner);
-            vals.Add("Group", info.Group);
-            vals.Add("Maturity", info.Maturity);
-            vals.Add("Marketplace", info.Marketplace);
-            vals.Add("LogoID", info.LogoID);
-            vals.Add("SlUrl", info.SlUrl);
+            var vals = new Dictionary<string, object>
+            {
+                { "Name", info.ID.ExperienceName },
+                { "HomeURI", info.ID.HomeURI },
+                { "Description", info.Description },
+                { "Properties", info.Properties },
+                { "Owner", info.Owner },
+                { "Group", info.Group },
+                { "Maturity", info.Maturity },
+                { "Marketplace", info.Marketplace },
+                { "LogoID", info.LogoID },
+                { "SlUrl", info.SlUrl }
+            };
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
@@ -374,6 +401,11 @@ namespace SilverSim.Database.MsSql.Experience
             }
         }
 
+        public bool Equals(MsSqlExperienceService other)
+        {
+            throw new NotImplementedException();
+        }
+
         private static readonly IMigrationElement[] m_Migrations = new IMigrationElement[]
         {
             new SqlTable("experiences"),
@@ -390,6 +422,8 @@ namespace SilverSim.Database.MsSql.Experience
             new AddColumn<string>("SlUrl") {IsNullAllowed = false, Cardinality = 255, Default = string.Empty },
             new PrimaryKeyInfo("ID"),
             new NamedKeyInfo("NameKey", "Name"),
+            new TableRevision(2),
+            new AddColumn<Uri>("HomeURI"),
 
             new SqlTable("experienceadmins"),
             new AddColumn<UUID>("ExperienceID") { IsNullAllowed = false },

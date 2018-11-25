@@ -397,7 +397,9 @@ namespace SilverSim.Database.MsSql._Migration
                     !(colInfo.Default.GetType() == typeof(UUID) &&
                     colInfo.FieldType == typeof(UGUIWithName)) &&
                     !(colInfo.Default.GetType() == typeof(UUID) &&
-                    colInfo.FieldType == typeof(UGI)))
+                    colInfo.FieldType == typeof(UGI)) &&
+                    !(colInfo.Default.GetType() == typeof(UUID) &&
+                    colInfo.FieldType == typeof(UEI)))
                 {
                     throw new ArgumentOutOfRangeException("Default does not match expected type in field " + colInfo.Name + " target type=" + colInfo.FieldType.FullName + " defaultType=" + colInfo.Default.GetType().FullName);
                 }
@@ -439,7 +441,7 @@ namespace SilverSim.Database.MsSql._Migration
                     (colInfo.IsLong ? "nvarchar(max)" : "nvarchar(4000)") :
                     (colInfo.IsFixed ? "NCHAR" : "NVARCHAR") + "(" + colInfo.Cardinality.ToString() + ")";
             }
-            else if (f == typeof(UGUI) || f == typeof(UGUIWithName) || f == typeof(UGI))
+            else if (f == typeof(UGUI) || f == typeof(UGUIWithName) || f == typeof(UGI) || f == typeof(UEI))
             {
                 typeSql = "NVARCHAR(255)";
             }
@@ -695,7 +697,9 @@ namespace SilverSim.Database.MsSql._Migration
                     !(colInfo.Default.GetType() == typeof(UUID) &&
                     colInfo.FieldType == typeof(UGUIWithName)) &&
                     !(colInfo.Default.GetType() == typeof(UUID) &&
-                    colInfo.FieldType == typeof(UGI)))
+                    colInfo.FieldType == typeof(UGI)) &&
+                    !(colInfo.Default.GetType() == typeof(UUID) &&
+                    colInfo.FieldType == typeof(UEI)))
                 {
                     throw new ArgumentOutOfRangeException("Default does not match expected type in field " + colInfo.Name + " target type=" + colInfo.FieldType.FullName + " defaultType=" + colInfo.Default.GetType().FullName);
                 }

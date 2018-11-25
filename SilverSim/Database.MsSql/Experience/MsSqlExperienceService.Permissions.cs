@@ -28,11 +28,11 @@ namespace SilverSim.Database.MsSql.Experience
 {
     public sealed partial class MsSqlExperienceService : IExperiencePermissionsInterface
     {
-        Dictionary<UUID, bool> IExperiencePermissionsInterface.this[UGUI agent]
+        Dictionary<UEI, bool> IExperiencePermissionsInterface.this[UGUI agent]
         {
             get
             {
-                var result = new Dictionary<UUID, bool>();
+                var result = new Dictionary<UEI, bool>();
                 using (var conn = new SqlConnection(m_ConnectionString))
                 {
                     conn.Open();
@@ -46,7 +46,7 @@ namespace SilverSim.Database.MsSql.Experience
                                 UGUI ret = reader.GetUGUI("User");
                                 if (ret.EqualsGrid(agent))
                                 {
-                                    result.Add(reader.GetUUID("ExperienceID"), (bool)reader["IsAllowed"]);
+                                    result.Add(new UEI(reader.GetUUID("ExperienceID")), (bool)reader["IsAllowed"]);
                                 }
                             }
                         }
@@ -57,7 +57,7 @@ namespace SilverSim.Database.MsSql.Experience
             }
         }
 
-        bool IExperiencePermissionsInterface.this[UUID experienceID, UGUI agent]
+        bool IExperiencePermissionsInterface.this[UEI experienceID, UGUI agent]
         {
             get
             {
@@ -73,7 +73,7 @@ namespace SilverSim.Database.MsSql.Experience
             {
                 var vals = new Dictionary<string, object>
                 {
-                    ["ExperienceID"] = experienceID,
+                    ["ExperienceID"] = experienceID.ID,
                     ["User"] = agent,
                     ["IsAllowed"] = value
                 };
@@ -85,28 +85,28 @@ namespace SilverSim.Database.MsSql.Experience
             }
         }
 
-        bool IExperiencePermissionsInterface.Remove(UUID experienceID, UGUI agent)
+        bool IExperiencePermissionsInterface.Remove(UEI experienceID, UGUI agent)
         {
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
                 using (var cmd = new SqlCommand("DELETE FROM experienceusers WHERE ExperienceID = @experienceid AND User LIKE @user", conn))
                 {
-                    cmd.Parameters.AddParameter("@experienceid", experienceID);
+                    cmd.Parameters.AddParameter("@experienceid", experienceID.ID);
                     cmd.Parameters.AddParameter("@user", agent.ID.ToString() + "%");
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
         }
 
-        bool IExperiencePermissionsInterface.TryGetValue(UUID experienceID, UGUI agent, out bool allowed)
+        bool IExperiencePermissionsInterface.TryGetValue(UEI experienceID, UGUI agent, out bool allowed)
         {
             using (var conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
                 using (var cmd = new SqlCommand("SELECT User,IsAllowed FROM experienceusers WHERE ExperienceID = @experienceid AND User LIKE @user", conn))
                 {
-                    cmd.Parameters.AddParameter("@experienceid", experienceID);
+                    cmd.Parameters.AddParameter("@experienceid", experienceID.ID);
                     cmd.Parameters.AddParameter("@user", agent.ID.ToString() + "%");
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
