@@ -803,6 +803,17 @@ namespace SilverSim.Database.MsSql
             return (byte[])o;
         }
 
+        public static byte[] GetBytesOrNull(this SqlDataReader dbReader, string prefix)
+        {
+            object o = dbReader[prefix];
+            var t = o?.GetType();
+            if (t == typeof(DBNull))
+            {
+                return null;
+            }
+            return (byte[])o;
+        }
+
         public static Uri GetUri(this SqlDataReader dbReader, string prefix)
         {
             object o = dbReader[prefix];
