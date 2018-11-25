@@ -693,7 +693,6 @@ namespace SilverSim.Database.MsSql.UserSession
                             return cmd.ExecuteNonQuery() > 0;
                         }
                     }
-                    return true;
                 });
             }
             value = val;
