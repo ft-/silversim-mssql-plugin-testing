@@ -50,7 +50,7 @@ namespace SilverSim.Database.MsSql.SimulationData
                                 {
                                     RegionID = reader.GetUUID("RegionID"),
                                     ParcelID = reader.GetUUID("ParcelID"),
-                                    ExperienceID = reader.GetUUID("ExperienceID"),
+                                    ExperienceID = new UEI(reader.GetUUID("ExperienceID")),
                                     IsAllowed = (bool)reader["IsAllowed"]
                                 };
                                 result.Add(entry);
@@ -62,7 +62,7 @@ namespace SilverSim.Database.MsSql.SimulationData
             }
         }
 
-        ParcelExperienceEntry IParcelExperienceList.this[UUID regionID, UUID parcelID, UUID experienceID]
+        ParcelExperienceEntry IParcelExperienceList.this[UUID regionID, UUID parcelID, UEI experienceID]
         {
             get
             {
@@ -89,7 +89,7 @@ namespace SilverSim.Database.MsSql.SimulationData
             }
         }
 
-        bool IParcelExperienceList.Remove(UUID regionID, UUID parcelID, UUID experienceID)
+        bool IParcelExperienceList.Remove(UUID regionID, UUID parcelID, UEI experienceID)
         {
             using (var connection = new SqlConnection(m_ConnectionString))
             {
@@ -98,7 +98,7 @@ namespace SilverSim.Database.MsSql.SimulationData
                 {
                     cmd.Parameters.AddParameter("@regionid", regionID);
                     cmd.Parameters.AddParameter("@parcelid", parcelID);
-                    cmd.Parameters.AddParameter("@experienceid", experienceID);
+                    cmd.Parameters.AddParameter("@experienceid", experienceID.ID);
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
@@ -134,7 +134,7 @@ namespace SilverSim.Database.MsSql.SimulationData
             }
         }
 
-        bool IParcelExperienceList.TryGetValue(UUID regionID, UUID parcelID, UUID experienceID, out ParcelExperienceEntry entry)
+        bool IParcelExperienceList.TryGetValue(UUID regionID, UUID parcelID, UEI experienceID, out ParcelExperienceEntry entry)
         {
             using (var connection = new SqlConnection(m_ConnectionString))
             {
@@ -144,7 +144,7 @@ namespace SilverSim.Database.MsSql.SimulationData
                 {
                     cmd.Parameters.AddParameter("@regionid", regionID);
                     cmd.Parameters.AddParameter("@parcelid", parcelID);
-                    cmd.Parameters.AddParameter("@experienceid", experienceID);
+                    cmd.Parameters.AddParameter("@experienceid", experienceID.ID);
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
@@ -153,7 +153,7 @@ namespace SilverSim.Database.MsSql.SimulationData
                             {
                                 RegionID = regionID,
                                 ParcelID = parcelID,
-                                ExperienceID = experienceID,
+                                ExperienceID = new UEI(experienceID),
                                 IsAllowed = (bool)reader["IsAllowed"]
                             };
                             return true;
