@@ -83,7 +83,7 @@ namespace SilverSim.Database.MsSql.Experience
 
         public override List<UEI> GetExperiencesByName(string experienceName, int limit)
         {
-            var groups = new List<UEI>();
+            var experiences = new List<UEI>();
             using (var connection = new SqlConnection(m_ConnectionString))
             {
                 connection.Open();
@@ -96,12 +96,12 @@ namespace SilverSim.Database.MsSql.Experience
                     {
                         while (dbReader.Read())
                         {
-                            groups.Add(ToUEI(dbReader));
+                            experiences.Add(ToUEI(dbReader));
                         }
                     }
                 }
             }
-            return groups;
+            return experiences;
         }
 
         public override void Store(UEI experience)
