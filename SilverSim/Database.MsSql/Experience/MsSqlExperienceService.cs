@@ -423,7 +423,7 @@ namespace SilverSim.Database.MsSql.Experience
             new PrimaryKeyInfo("ID"),
             new NamedKeyInfo("NameKey", "Name"),
             new TableRevision(2),
-            new AddColumn<Uri>("HomeURI"),
+            new AddColumn<string>("HomeURI") { Cardinality = 255 },
 
             new SqlTable("experienceadmins"),
             new AddColumn<UUID>("ExperienceID") { IsNullAllowed = false },
