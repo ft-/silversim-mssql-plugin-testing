@@ -120,7 +120,7 @@ namespace SilverSim.Database.MsSql.Groups
                 {
                     vars.Add("AuthorizationData", group.AuthorizationToken);
                 }
-                connection.ReplaceInto("groupnames", vars, new string[] { "GroupID", "HomeURI" });
+                connection.ReplaceInto("groupnames", vars, new string[] { "GroupID" });
             }
         }
         #endregion
@@ -155,6 +155,8 @@ namespace SilverSim.Database.MsSql.Groups
             new ChangeColumn<string>("GroupName") { Cardinality = 255, IsNullAllowed = false, Default = string.Empty },
             new TableRevision(3),
             new AddColumn<byte[]>("AuthorizationData"),
+            new TableRevision(4),
+            new PrimaryKeyInfo("GroupID"),
         };
     }
 }
