@@ -216,6 +216,7 @@ namespace SilverSim.Database.MsSql.SimulationData
                 LocalizationSerialization = dbReader.GetBytes("LocalizationData"),
                 Damage = (double)dbReader["Damage"]
             };
+            objpart.AnimationController.DbSerialization = dbReader.GetBytes("AnimationData");
 
             using (var ms = new MemoryStream(dbReader.GetBytes("DynAttrs")))
             {
